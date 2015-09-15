@@ -1,0 +1,244 @@
+# Translations template for invenio-utils.
+# Copyright (C) 2015 CERN
+# This file is distributed under the same license as the invenio-utils
+# project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2015.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: invenio-utils 0.1.0.dev20150000\n"
+"Report-Msgid-Bugs-To: info@invenio-software.org\n"
+"POT-Creation-Date: 2015-09-15 15:24+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.0\n"
+
+#: invenio_utils/date.py:136 invenio_utils/date.py:163
+msgid "N/A"
+msgstr ""
+
+#: invenio_utils/date.py:224
+msgid "Sun"
+msgstr ""
+
+#: invenio_utils/date.py:225
+msgid "Mon"
+msgstr ""
+
+#: invenio_utils/date.py:226
+msgid "Tue"
+msgstr ""
+
+#: invenio_utils/date.py:227
+msgid "Wed"
+msgstr ""
+
+#: invenio_utils/date.py:228
+msgid "Thu"
+msgstr ""
+
+#: invenio_utils/date.py:229
+msgid "Fri"
+msgstr ""
+
+#: invenio_utils/date.py:230
+msgid "Sat"
+msgstr ""
+
+#: invenio_utils/date.py:232
+msgid "Sunday"
+msgstr ""
+
+#: invenio_utils/date.py:233
+msgid "Monday"
+msgstr ""
+
+#: invenio_utils/date.py:234
+msgid "Tuesday"
+msgstr ""
+
+#: invenio_utils/date.py:235
+msgid "Wednesday"
+msgstr ""
+
+#: invenio_utils/date.py:236
+msgid "Thursday"
+msgstr ""
+
+#: invenio_utils/date.py:237
+msgid "Friday"
+msgstr ""
+
+#: invenio_utils/date.py:238
+msgid "Saturday"
+msgstr ""
+
+#: invenio_utils/date.py:254 invenio_utils/date.py:268
+msgid "Month"
+msgstr ""
+
+#: invenio_utils/date.py:255
+msgid "Jan"
+msgstr ""
+
+#: invenio_utils/date.py:256
+msgid "Feb"
+msgstr ""
+
+#: invenio_utils/date.py:257
+msgid "Mar"
+msgstr ""
+
+#: invenio_utils/date.py:258
+msgid "Apr"
+msgstr ""
+
+#: invenio_utils/date.py:259
+msgid "May"
+msgstr ""
+
+#: invenio_utils/date.py:260
+msgid "Jun"
+msgstr ""
+
+#: invenio_utils/date.py:261
+msgid "Jul"
+msgstr ""
+
+#: invenio_utils/date.py:262
+msgid "Aug"
+msgstr ""
+
+#: invenio_utils/date.py:263
+msgid "Sep"
+msgstr ""
+
+#: invenio_utils/date.py:264
+msgid "Oct"
+msgstr ""
+
+#: invenio_utils/date.py:265
+msgid "Nov"
+msgstr ""
+
+#: invenio_utils/date.py:266
+msgid "Dec"
+msgstr ""
+
+#: invenio_utils/date.py:269
+msgid "January"
+msgstr ""
+
+#: invenio_utils/date.py:270
+msgid "February"
+msgstr ""
+
+#: invenio_utils/date.py:271
+msgid "March"
+msgstr ""
+
+#: invenio_utils/date.py:272
+msgid "April"
+msgstr ""
+
+#: invenio_utils/date.py:273
+msgid "May "
+msgstr ""
+
+#: invenio_utils/date.py:274
+msgid "June"
+msgstr ""
+
+#: invenio_utils/date.py:275
+msgid "July"
+msgstr ""
+
+#: invenio_utils/date.py:276
+msgid "August"
+msgstr ""
+
+#: invenio_utils/date.py:277
+msgid "September"
+msgstr ""
+
+#: invenio_utils/date.py:278
+msgid "October"
+msgstr ""
+
+#: invenio_utils/date.py:279
+msgid "November"
+msgstr ""
+
+#: invenio_utils/date.py:280
+msgid "December"
+msgstr ""
+
+#: invenio_utils/date.py:300
+msgid "Day"
+msgstr ""
+
+#: invenio_utils/date.py:360
+msgid "Year"
+msgstr ""
+
+#: invenio_utils/date.py:554
+msgid "just now"
+msgstr ""
+
+#: invenio_utils/date.py:556
+msgid " seconds ago"
+msgstr ""
+
+#: invenio_utils/date.py:558
+msgid "a minute ago"
+msgstr ""
+
+#: invenio_utils/date.py:560
+msgid " minutes ago"
+msgstr ""
+
+#: invenio_utils/date.py:562
+msgid "an hour ago"
+msgstr ""
+
+#: invenio_utils/date.py:564
+msgid " hours ago"
+msgstr ""
+
+#: invenio_utils/date.py:566
+msgid "Yesterday"
+msgstr ""
+
+#: invenio_utils/date.py:568
+msgid " days ago"
+msgstr ""
+
+#: invenio_utils/date.py:571
+msgid "Last week"
+msgstr ""
+
+#: invenio_utils/date.py:573
+msgid " weeks ago"
+msgstr ""
+
+#: invenio_utils/date.py:576
+msgid "Last month"
+msgstr ""
+
+#: invenio_utils/date.py:578
+msgid " months ago"
+msgstr ""
+
+#: invenio_utils/date.py:580
+msgid "Last year"
+msgstr ""
+
+#: invenio_utils/date.py:582
+msgid " years ago"
+msgstr ""
+
