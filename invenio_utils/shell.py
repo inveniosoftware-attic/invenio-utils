@@ -25,16 +25,17 @@ The main API functions are:
    - run_shell_command()
 """
 
-import os
 import fcntl
+import os
+import select
+import signal
+import subprocess
 import tempfile
 import time
-import signal
-import six
-import select
 from itertools import chain
+
+import six
 from six import StringIO
-import subprocess
 
 __all__ = ['run_shell_command',
            'run_process_with_timeout',
@@ -59,6 +60,7 @@ try:
 except ImportError:
     # CPython <3.3
     from distutils.spawn import find_executable as which
+
 
 class Timeout(Exception):
     """Exception raised by with_timeout() when the operation takes too long.
@@ -129,13 +131,13 @@ def run_shell_command(cmd, args=None, filename_out=None, filename_err=None):
         file_cmd_out = filename_out
     else:
         cmd_out_fd, file_cmd_out = \
-                    tempfile.mkstemp("invenio_utils.shell-cmd-out")
+            tempfile.mkstemp("invenio_utils.shell-cmd-out")
     if filename_err:
         cmd_err_fd = os.open(filename_err, os.O_CREAT, 0o644)
         file_cmd_err = filename_err
     else:
         cmd_err_fd, file_cmd_err = \
-                    tempfile.mkstemp("invenio_utils.shell-cmd-err")
+            tempfile.mkstemp("invenio_utils.shell-cmd-err")
     # run command:
     cmd_exit_code = os.system("%s > %s 2> %s" % (cmd,
                                                  file_cmd_out,
@@ -159,7 +161,14 @@ def run_shell_command(cmd, args=None, filename_out=None, filename_err=None):
     return cmd_exit_code, cmd_out, cmd_err
 
 
-def run_process_with_timeout(args, filename_in=None, filename_out=None, filename_err=None, cwd=None, timeout=None, sudo=None):
+def run_process_with_timeout(
+        args,
+        filename_in=None,
+        filename_out=None,
+        filename_err=None,
+        cwd=None,
+        timeout=None,
+        sudo=None):
     """Execute the specified process but within a certain timeout.
 
     @param args: the actuall process. This should be a list of string as in:
@@ -211,7 +220,7 @@ def run_process_with_timeout(args, filename_in=None, filename_out=None, filename
     if filename_in is not None:
         stdin = open(filename_in)
     else:
-        ## FIXME: should use NUL on Windows
+        # FIXME: should use NUL on Windows
         stdin = open('/dev/null', 'r')
     if filename_out:
         stdout = open(filename_out, 'w')
@@ -221,10 +230,18 @@ def run_process_with_timeout(args, filename_in=None, filename_out=None, filename
     tmp_stderr = StringIO()
     if sudo is not None:
         args = ['sudo', '-u', sudo, '-S'] + list(args)
-    ## See: <http://stackoverflow.com/questions/3876886/timeout-a-subprocess>
-    process = subprocess.Popen(args, stdin=stdin, stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True, cwd=cwd, preexec_fn=os.setpgrp)
+    # See: <http://stackoverflow.com/questions/3876886/timeout-a-subprocess>
+    process = subprocess.Popen(
+        args,
+        stdin=stdin,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        close_fds=True,
+        cwd=cwd,
+        preexec_fn=os.setpgrp)
 
-    ## See: <http://stackoverflow.com/questions/375427/non-blocking-read-on-a-stream-in-python>
+    # See:
+    # <http://stackoverflow.com/questions/375427/non-blocking-read-on-a-stream-in-python>
     fd = process.stdout.fileno()
     fl = fcntl.fcntl(fd, fcntl.F_GETFL)
     fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
@@ -241,7 +258,8 @@ def run_process_with_timeout(args, filename_in=None, filename_out=None, filename
                     process.stdin.close()
                 time.sleep(1)
                 if process.poll() is None:
-                    ## See: <http://stackoverflow.com/questions/3876886/timeout-a-subprocess>
+                    # See:
+                    # <http://stackoverflow.com/questions/3876886/timeout-a-subprocess>
                     os.killpg(process.pid, signal.SIGTERM)
                     time.sleep(1)
                 if process.poll() is None:
@@ -268,7 +286,7 @@ def run_process_with_timeout(args, filename_in=None, filename_out=None, filename
                     raise OSError("fd %s is not a valid file descriptor" % fd)
     finally:
         while True:
-            ## Let's just read what is remaining to read.
+            # Let's just read what is remaining to read.
             for fd in select.select(fd_to_poll, [], [], select_timeout)[0]:
                 if fd == process.stdout:
                     buf = process.stdout.read(65536)
@@ -300,12 +318,13 @@ def escape_shell_arg(shell_arg):
     @see: U{http://mail.python.org/pipermail/python-list/2005-October/346957.html}
     """
 
-    if type(shell_arg) is six.text_type:
+    if isinstance(shell_arg, six.text_type):
         msg = "ERROR: escape_shell_arg() expected string argument but " \
               "got '%s' of type '%s'." % (repr(shell_arg), type(shell_arg))
         raise TypeError(msg)
 
     return "'%s'" % shell_arg.replace("'", r"'\''")
+
 
 def retry_mkstemp(suffix='', prefix='tmp', directory=None, max_retries=3):
     """
@@ -317,9 +336,9 @@ def retry_mkstemp(suffix='', prefix='tmp', directory=None, max_retries=3):
     for retry_count in range(1, max_retries + 1):
         try:
             tmp_file_fd, tmp_file_name = tempfile.mkstemp(suffix=suffix,
-                                                 prefix=prefix,
-                                                 dir=directory)
-        except OSError, e:
+                                                          prefix=prefix,
+                                                          dir=directory)
+        except OSError as e:
             if e.errno == 19 and retry_count <= max_retries:
                 # AFS Glitch?
                 time.sleep(10)
@@ -339,7 +358,7 @@ def mymkdir(newdir, mode=0o777):
     if os.path.isdir(newdir):
         pass
     elif os.path.isfile(newdir):
-        raise OSError("a file with the same name as the desired " \
+        raise OSError("a file with the same name as the desired "
                       "dir, '%s', already exists." % newdir)
     else:
         head, tail = os.path.split(newdir)
@@ -351,8 +370,8 @@ def mymkdir(newdir, mode=0o777):
 
 
 def s(t):
-    ## De-comment this to have lots of debugging information
-    #print time.time(), t
+    # De-comment this to have lots of debugging information
+    # print time.time(), t
     pass
 
 

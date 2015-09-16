@@ -3,7 +3,7 @@
 # Some functions about dates
 #
 # This file is part of Invenio.
-# Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 
+# Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
 #               2013, 2014, 2015 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
@@ -43,16 +43,18 @@ Lexicon
 __revision__ = "$Id$"
 
 import re
-import six
 import time
-from datetime import (date as real_date,
-                      datetime as real_datetime,
-                      time as real_time,
-                      timedelta)
+from datetime import date as real_date
+from datetime import datetime as real_datetime
+from datetime import time as real_time
+from datetime import timedelta
+
+import six
 from flask_babel import format_datetime as babel_format_datetime
-from invenio_base.globals import cfg
-from invenio_base.i18n import gettext_set_language, _
+
 from invenio.ext.babel import set_locale
+from invenio_base.globals import cfg
+from invenio_base.i18n import _, gettext_set_language
 
 try:
     from mx.DateTime import Parser
@@ -84,13 +86,14 @@ datetext_format = "%Y-%m-%d %H:%M:%S"
 default_ln = lambda ln: cfg['CFG_SITE_LANG'] if ln is None else ln
 
 
-
 class date(real_date):
+
     def strftime(self, fmt):
         return strftime(fmt, self)
 
 
 class datetime(real_datetime):
+
     def strftime(self, fmt):
         return strftime(fmt, self)
 
@@ -523,7 +526,7 @@ def pretty_date(ugly_time=False, ln=None):
     now = real_datetime.now()
 
     if isinstance(ugly_time, six.string_types):
-        #try to convert it to epoch timestamp
+        # try to convert it to epoch timestamp
         date_format = '%Y-%m-%d %H:%M:%S.%f'
         try:
             ugly_time = time.strptime(ugly_time, date_format)
@@ -590,7 +593,7 @@ def _findall(text, substr):
     # Also finds overlaps
     sites = []
     i = 0
-    while 1:
+    while True:
         j = text.find(substr, i)
         if j == -1:
             break
@@ -648,7 +651,10 @@ def get_dst(date_obj):
     return dst
 
 
-def utc_to_localtime(date_str, fmt="%Y-%m-%d %H:%M:%S", input_fmt="%Y-%m-%dT%H:%M:%SZ"):
+def utc_to_localtime(
+        date_str,
+        fmt="%Y-%m-%d %H:%M:%S",
+        input_fmt="%Y-%m-%dT%H:%M:%SZ"):
     """
     Convert UTC to localtime
 
@@ -668,7 +674,10 @@ def utc_to_localtime(date_str, fmt="%Y-%m-%d %H:%M:%S", input_fmt="%Y-%m-%dT%H:%
     return strftime(fmt, date_struct)
 
 
-def localtime_to_utc(date_str, fmt="%Y-%m-%dT%H:%M:%SZ", input_fmt="%Y-%m-%d %H:%M:%S"):
+def localtime_to_utc(
+        date_str,
+        fmt="%Y-%m-%dT%H:%M:%SZ",
+        input_fmt="%Y-%m-%d %H:%M:%S"):
     """Convert localtime to UTC"""
     date_struct = datetime.strptime(date_str, input_fmt)
     date_struct -= timedelta(hours=get_dst(date_struct))

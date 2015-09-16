@@ -21,6 +21,6 @@
 
 import warnings
 
-warnings.warn("Use Invenio-Client package instead.", DeprecationWarning)
-
 from invenio_client import *
+
+warnings.warn("Use Invenio-Client package instead.", DeprecationWarning)

@@ -25,20 +25,29 @@ It defines functions for argument washing, redirection, etc.
 
 from __future__ import absolute_import
 
-import time
 import base64
 import hmac
+import inspect
+import os
 import re
 import sys
-import os
-import inspect
+import time
 import urllib
 import urllib2
-from urllib import urlencode, quote_plus, quote, FancyURLopener
+from cgi import escape, parse_qs, parse_qsl
+from urllib import FancyURLopener, quote, quote_plus, urlencode
+from urlparse import urljoin, urlparse
+
+from flask import request, url_for
 from six.moves.urllib.parse import urlparse, urlunparse
-from cgi import parse_qs, parse_qsl, escape
 from werkzeug import cached_property
 from werkzeug.local import LocalProxy
+
+from invenio_base.globals import cfg
+
+from . import apache
+from .hash import HASHLIB_IMPORTED, md5, sha1
+from .text import wash_for_utf8
 
 try:
     import BeautifulSoup
@@ -46,10 +55,6 @@ try:
 except ImportError:
     BEAUTIFUL_SOUP_IMPORTED = False
 
-from invenio_base.globals import cfg
-from .hash import sha1, md5, HASHLIB_IMPORTED
-from .text import wash_for_utf8
-from . import apache
 
 
 def wash_url_argument(var, new_type):
@@ -80,7 +85,7 @@ def wash_url_argument(var, new_type):
             out = var
         else:
             out = "%s" % var
-    elif new_type == 'int': # return int
+    elif new_type == 'int':  # return int
         if isinstance(var, list):
             try:
                 out = int(var[0])
@@ -95,12 +100,12 @@ def wash_url_argument(var, new_type):
                 out = 0
         else:
             out = 0
-    elif new_type == 'tuple': # return tuple
+    elif new_type == 'tuple':  # return tuple
         if isinstance(var, tuple):
             out = var
         else:
             out = (var, )
-    elif new_type == 'dict': # return dictionary
+    elif new_type == 'dict':  # return dictionary
         if isinstance(var, dict):
             out = var
         else:
@@ -108,15 +113,14 @@ def wash_url_argument(var, new_type):
     return out
 
 
-from urlparse import urlparse, urljoin
-from flask import request, url_for
+
 
 def is_local_url(target):
     """Determine if URL is a local."""
     ref_url = urlparse(cfg.get('CFG_SITE_SECURE_URL'))
     test_url = urlparse(urljoin(cfg.get('CFG_SITE_SECURE_URL'), target))
     return test_url.scheme in ('http', 'https') and \
-           ref_url.netloc == test_url.netloc
+        ref_url.netloc == test_url.netloc
 
 
 def get_safe_redirect_target(arg='next'):
@@ -153,8 +157,8 @@ def redirect_to_url(req, url, redirection_type=None, norobot=False):
 
     from flask import redirect
     r = redirect(url, code=redirection_type)
-    raise apache.SERVER_RETURN, r
-    #FIXME enable code bellow
+    raise apache.SERVER_RETURN(r)
+    # FIXME enable code bellow
 
     del req.headers_out["Cache-Control"]
     req.headers_out["Cache-Control"] = "no-cache, private, no-store, " \
@@ -162,17 +166,18 @@ def redirect_to_url(req, url, redirection_type=None, norobot=False):
     req.headers_out["Pragma"] = "no-cache"
 
     if norobot:
-        req.headers_out["X-Robots-Tag"] = "noarchive, nosnippet, noindex, nocache"
+        req.headers_out[
+            "X-Robots-Tag"] = "noarchive, nosnippet, noindex, nocache"
 
     user_agent = req.headers_in.get('User-Agent', '')
     if 'Microsoft Office Existence Discovery' in user_agent or 'ms-office' in user_agent:
-        ## HACK: this is to workaround Microsoft Office trying to be smart
-        ## when users click on URLs in Office documents that require
-        ## authentication. Office will check the validity of the URL
-        ## but will pass the browser the redirected URL rather than
-        ## the original one. This is incompatible with e.g. Shibboleth
-        ## based SSO since the referer would be lost.
-        ## See: http://support.microsoft.com/kb/899927
+        # HACK: this is to workaround Microsoft Office trying to be smart
+        # when users click on URLs in Office documents that require
+        # authentication. Office will check the validity of the URL
+        # but will pass the browser the redirected URL rather than
+        # the original one. This is incompatible with e.g. Shibboleth
+        # based SSO since the referer would be lost.
+        # See: http://support.microsoft.com/kb/899927
         req.status = 200
         req.content_type = 'text/html'
         if req.method != 'HEAD':
@@ -199,7 +204,7 @@ def redirect_to_url(req, url, redirection_type=None, norobot=False):
     req.status = redirection_type
     req.write('<p>Please go to <a href="%s">here</a></p>\n' % url)
 
-    raise apache.SERVER_RETURN, apache.DONE
+    raise apache.SERVER_RETURN(apache.DONE)
 
 
 def rewrite_to_secure_url(url, secure_base=None):
@@ -242,9 +247,9 @@ def drop_default_urlargd(urlargd, default_urlargd):
     lndefault = {}
     lndefault.update(default_urlargd)
 
-    ## Commented out. An Invenio URL now should always specify the desired
-    ## language, in order not to raise the automatic language discovery
-    ## (client browser language can be used now in place of CFG_SITE_LANG)
+    # Commented out. An Invenio URL now should always specify the desired
+    # language, in order not to raise the automatic language discovery
+    # (client browser language can be used now in place of CFG_SITE_LANG)
     # lndefault['ln'] = (str, CFG_SITE_LANG)
 
     canonical = {}
@@ -281,7 +286,7 @@ def make_canonical_urlargd(urlargd, default_urlargd):
 
     if canonical:
         return '?' + urlencode(canonical, doseq=True)
-        #FIXME double escaping of '&'? .replace('&', '&amp;')
+        # FIXME double escaping of '&'? .replace('&', '&amp;')
 
     return ''
 
@@ -306,21 +311,29 @@ def create_html_link(urlbase, urlargd, link_label, linkattrd=None,
     if linkattrd:
         output += ' '
         if escape_linkattrd:
-            attributes = [escape(str(key), quote=True) + '="' + \
+            attributes = [escape(str(key), quote=True) + '="' +
                           escape(str(linkattrd[key]), quote=True) + '"'
-                                for key in linkattrd.keys()]
+                          for key in linkattrd.keys()]
         else:
             attributes = [str(key) + '="' + str(linkattrd[key]) + '"'
-                                for key in linkattrd.keys()]
+                          for key in linkattrd.keys()]
         output += attributes_separator.join(attributes)
     output = wash_for_utf8(output)
     output += '>' + wash_for_utf8(link_label) + '</a>'
     return output
 
 
-def create_html_mailto(email, subject=None, body=None, cc=None, bcc=None,
-        link_label="%(email)s", linkattrd=None, escape_urlargd=True,
-        escape_linkattrd=True, email_obfuscation_mode=None):
+def create_html_mailto(
+        email,
+        subject=None,
+        body=None,
+        cc=None,
+        bcc=None,
+        link_label="%(email)s",
+        linkattrd=None,
+        escape_urlargd=True,
+        escape_linkattrd=True,
+        email_obfuscation_mode=None):
     """Creates a W3C compliant 'mailto' link.
 
     Encode/encrypt given email to reduce undesired automated email
@@ -374,13 +387,13 @@ def create_html_mailto(email, subject=None, body=None, cc=None, bcc=None,
     """
     # TODO: implement other protection modes to encode/encript email:
     #
-    ## [t] 5 : form submission. User is redirected to a form that he can
-    ##         fills in to send the email (??Use webmessage??).
-    ##         Depending on WebAccess, ask to answer a question.
+    # [t] 5 : form submission. User is redirected to a form that he can
+    # fills in to send the email (??Use webmessage??).
+    # Depending on WebAccess, ask to answer a question.
     ##
-    ## [t] 6 : if user can see (controlled by WebAccess), display. Else
-    ##         ask to login to see email. If user cannot see, display
-    ##         form submission.
+    # [t] 6 : if user can see (controlled by WebAccess), display. Else
+    # ask to login to see email. If user cannot see, display
+    # form submission.
 
     if email_obfuscation_mode is None:
         email_obfuscation_mode = cfg.get(
@@ -432,12 +445,14 @@ def create_html_mailto(email, subject=None, body=None, cc=None, bcc=None,
                mailto_link[::-1].replace("'", "\\'")
     elif email_obfuscation_mode == 4:
         # GIFs-based
-        email = email.replace('.',
-            '<img src="%s/img/dot.gif" alt=" [dot] " '
-            'style="vertical-align:bottom"  />' % cfg.get('CFG_SITE_URL'))
-        email = email.replace('@',
-            '<img src="%s/img/at.gif" alt=" [at] " '
-            'style="vertical-align:baseline" />' % cfg.get('CFG_SITE_URL'))
+        email = email.replace(
+            '.', '<img src="%s/img/dot.gif" alt=" [dot] " '
+            'style="vertical-align:bottom"  />' %
+            cfg.get('CFG_SITE_URL'))
+        email = email.replace(
+            '@', '<img src="%s/img/at.gif" alt=" [at] " '
+            'style="vertical-align:baseline" />' %
+            cfg.get('CFG_SITE_URL'))
         return email
 
     # All other cases, including mode -1:
@@ -454,7 +469,12 @@ def string_to_numeric_char_reference(string):
         out += "&#" + str(ord(char)) + ";"
     return out
 
-def get_canonical_and_alternates_urls(url, drop_ln=True, washed_argd=None, quote_path=False):
+
+def get_canonical_and_alternates_urls(
+        url,
+        drop_ln=True,
+        washed_argd=None,
+        quote_path=False):
     """
     Given an Invenio URL returns a tuple with two elements. The first is the
     canonical URL, that is the original URL with CFG_SITE_URL prefix, and
@@ -464,10 +484,12 @@ def get_canonical_and_alternates_urls(url, drop_ln=True, washed_argd=None, quote
     @param quote_path: if True, the path section of the given C{url}
                        is quoted according to RFC 2396
     """
-    dummy_scheme, dummy_netloc, path, dummy_params, query, fragment = urlparse(url)
+    dummy_scheme, dummy_netloc, path, dummy_params, query, fragment = urlparse(
+        url)
     canonical_scheme, canonical_netloc = urlparse(cfg.get('CFG_SITE_URL'))[0:2]
     parsed_query = washed_argd or parse_qsl(query)
-    no_ln_parsed_query = [(key, value) for (key, value) in parsed_query if key != 'ln']
+    no_ln_parsed_query = [(key, value)
+                          for (key, value) in parsed_query if key != 'ln']
     if drop_ln:
         canonical_parsed_query = no_ln_parsed_query
     else:
@@ -475,13 +497,26 @@ def get_canonical_and_alternates_urls(url, drop_ln=True, washed_argd=None, quote
     if quote_path:
         path = urllib.quote(path)
     canonical_query = urlencode(canonical_parsed_query)
-    canonical_url = urlunparse((canonical_scheme, canonical_netloc, path, dummy_params, canonical_query, fragment))
+    canonical_url = urlunparse(
+        (canonical_scheme,
+         canonical_netloc,
+         path,
+         dummy_params,
+         canonical_query,
+         fragment))
     alternate_urls = {}
     for ln in cfg.get('CFG_SITE_LANGS'):
         alternate_query = urlencode(no_ln_parsed_query + [('ln', ln)])
-        alternate_url = urlunparse((canonical_scheme, canonical_netloc, path, dummy_params, alternate_query, fragment))
+        alternate_url = urlunparse(
+            (canonical_scheme,
+             canonical_netloc,
+             path,
+             dummy_params,
+             alternate_query,
+             fragment))
         alternate_urls[ln] = alternate_url
     return canonical_url, alternate_urls
+
 
 def create_url(urlbase, urlargd, escape_urlargd=True, urlhash=None):
     """Creates a W3C compliant URL. Output will look like this:
@@ -497,12 +532,12 @@ def create_url(urlbase, urlargd, escape_urlargd=True, urlhash=None):
     if urlargd:
         output += '?'
         if escape_urlargd:
-            arguments = [escape(quote(str(key)), quote=True) + '=' + \
+            arguments = [escape(quote(str(key)), quote=True) + '=' +
                          escape(quote(str(urlargd[key])), quote=True)
-                                for key in urlargd.keys()]
+                         for key in urlargd.keys()]
         else:
             arguments = [str(key) + '=' + str(urlargd[key])
-                            for key in urlargd.keys()]
+                         for key in urlargd.keys()]
         output += separator.join(arguments)
     if urlhash:
         output += "#" + escape(quote(str(urlhash)))
@@ -534,14 +569,14 @@ def urlargs_replace_text_in_arg(urlargs, regexp_argname, text_old, text_new):
     out = ""
     # parse URL arguments into a dictionary:
     urlargsdict = parse_qs(urlargs)
-    ## construct new URL arguments:
+    # construct new URL arguments:
     urlargsdictnew = {}
     for key in urlargsdict.keys():
-        if re.match(regexp_argname, key): # replace `arg' by new values
+        if re.match(regexp_argname, key):  # replace `arg' by new values
             urlargsdictnew[key] = []
             for parg in urlargsdict[key]:
                 urlargsdictnew[key].append(parg.replace(text_old, text_new))
-        else: # keep old values
+        else:  # keep old values
             urlargsdictnew[key] = urlargsdict[key]
     # build new URL for this word:
     for key in urlargsdictnew.keys():
@@ -550,6 +585,7 @@ def urlargs_replace_text_in_arg(urlargs, regexp_argname, text_old, text_new):
     if out.startswith("&amp;"):
         out = out[5:]
     return out
+
 
 def get_title_of_page(url):
     """
@@ -574,7 +610,8 @@ def make_user_agent_string(component=None):
     Return a nice and uniform user-agent string to be used when Invenio
     act as a client in HTTP requests.
     """
-    ret = "Invenio-%s (+%s; \"%s\")" % (cfg.get('CFG_VERSION'), cfg.get('CFG_SITE_URL'), cfg.get('CFG_SITE_NAME'))
+    ret = "Invenio-%s (+%s; \"%s\")" % (cfg.get('CFG_VERSION'),
+                                        cfg.get('CFG_SITE_URL'), cfg.get('CFG_SITE_NAME'))
     if component:
         ret += " %s" % component
     return ret
@@ -595,6 +632,7 @@ class InvenioFancyURLopener(FancyURLopener):
 # See: http://docs.python.org/release/2.4.4/lib/module-urllib.html
 urllib._urlopener = LocalProxy(lambda: InvenioFancyURLopener())
 
+
 def make_invenio_opener(component=None):
     """
     Return an urllib2 opener with the useragent already set in the appropriate
@@ -603,6 +641,7 @@ def make_invenio_opener(component=None):
     opener = urllib2.build_opener()
     opener.addheaders = [('User-agent', make_user_agent_string(component))]
     return opener
+
 
 def create_AWS_request_url(base_url, argd, _amazon_secret_access_key,
                            _timestamp=None):
@@ -632,7 +671,7 @@ def create_AWS_request_url(base_url, argd, _amazon_secret_access_key,
     @return signed URL of the request (string)
     """
 
-    ## First define a few util functions
+    # First define a few util functions
 
     def get_AWS_signature(argd, _amazon_secret_access_key,
                           method="GET", request_host="webservices.amazon.com",
@@ -667,13 +706,12 @@ def create_AWS_request_url(base_url, argd, _amazon_secret_access_key,
             argd["Timestamp"] = _timestamp
 
         # Order parameter keys by byte value
-        parameter_keys = argd.keys()
-        parameter_keys.sort()
+        parameter_keys = sorted(argd.keys())
 
         # Encode arguments, according to RFC 3986. Make sure we
         # generate a list which is ordered by byte value of the keys
-        arguments = [quote(str(key), safe="~/") + "=" + \
-                     quote(str(argd[key]), safe="~/") \
+        arguments = [quote(str(key), safe="~/") + "=" +
+                     quote(str(argd[key]), safe="~/")
                      for key in parameter_keys]
 
         # Join
@@ -681,9 +719,9 @@ def create_AWS_request_url(base_url, argd, _amazon_secret_access_key,
 
         # Prefix
         parameters_string = method.upper() + "\n" + \
-                            request_host.lower() + "\n" + \
-                            (request_uri or "/") + "\n" + \
-                            parameters_string
+            request_host.lower() + "\n" + \
+            (request_uri or "/") + "\n" + \
+            parameters_string
 
         # Sign and return
         return calculate_RFC2104_HMAC(parameters_string,
@@ -705,10 +743,14 @@ def create_AWS_request_url(base_url, argd, _amazon_secret_access_key,
         """
         if not HASHLIB_IMPORTED:
             try:
-                raise Exception("Module hashlib not installed. Please install it.")
+                raise Exception(
+                    "Module hashlib not installed. Please install it.")
             except:
                 from invenio.ext.logging import register_exception
-                register_exception(stream='warning', alert_admin=True, subject='Cannot create AWS signature')
+                register_exception(
+                    stream='warning',
+                    alert_admin=True,
+                    subject='Cannot create AWS signature')
                 return ""
         else:
             if sys.version_info < (2, 5):
@@ -717,9 +759,12 @@ def create_AWS_request_url(base_url, argd, _amazon_secret_access_key,
             else:
                 my_digest_algo = sha256
 
-        return base64.encodestring(hmac.new(_amazon_secret_access_key,
-                                            data, my_digest_algo).digest()).strip()
-     ## End util functions
+        return base64.encodestring(
+            hmac.new(
+                _amazon_secret_access_key,
+                data,
+                my_digest_algo).digest()).strip()
+     # End util functions
 
     parsed_url = urlparse(base_url)
     signature = get_AWS_signature(argd, _amazon_secret_access_key,
@@ -731,7 +776,16 @@ def create_AWS_request_url(base_url, argd, _amazon_secret_access_key,
     return base_url + "?" + urlencode(argd)
 
 
-def create_Indico_request_url(base_url, indico_what, indico_loc, indico_id, indico_type, indico_params, indico_key, indico_sig, _timestamp=None):
+def create_Indico_request_url(
+        base_url,
+        indico_what,
+        indico_loc,
+        indico_id,
+        indico_type,
+        indico_params,
+        indico_key,
+        indico_sig,
+        _timestamp=None):
     """
     Create a signed Indico request URL to access Indico HTTP Export APIs.
 
@@ -793,19 +847,22 @@ def create_Indico_request_url(base_url, indico_what, indico_loc, indico_id, indi
             my_digest_algo = _MySHA1(sha1())
         else:
             my_digest_algo = sha1
-        signature = hmac.new(indico_sig, url_to_sign, my_digest_algo).hexdigest()
+        signature = hmac.new(indico_sig, url_to_sign,
+                             my_digest_algo).hexdigest()
         items.append(('signature', signature))
     elif not HASHLIB_IMPORTED:
         try:
             raise Exception("Module hashlib not installed. Please install it.")
         except:
             from invenio.ext.logging import register_exception
-            register_exception(stream='warning', alert_admin=True, subject='Cannot create AWS signature')
+            register_exception(stream='warning', alert_admin=True,
+                               subject='Cannot create AWS signature')
     if not items:
         return url
 
     url = '%s%s?%s' % (base_url.strip('/'), url, urlencode(items))
     return url
+
 
 class _MyHashlibAlgo(object):
     '''
@@ -836,8 +893,8 @@ class _MyHashlibAlgo(object):
     def __getattr__(self, name):
         """Redirect unhandled get attribute to self._obj."""
         if not hasattr(self._obj, name):
-            raise AttributeError, ("'%s' has no attribute %s" %
-                                   (self.__class__.__name__, name))
+            raise AttributeError("'%s' has no attribute %s" %
+                                 (self.__class__.__name__, name))
         else:
             return getattr(self._obj, name)
 
@@ -850,14 +907,13 @@ class _MyHashlibAlgo(object):
             self_has_attr = False
 
         if (name == "_obj" or not hasattr(self, "_obj") or
-            not hasattr(self._obj, name) or self_has_attr):
+                not hasattr(self._obj, name) or self_has_attr):
             return super(_MyHashlibAlgo, self).__setattr__(name, value)
         else:
             return setattr(self._obj, name, value)
 
 if HASHLIB_IMPORTED:
     from invenio_utils.hash import sha256
-
 
     class _MySHA256(_MyHashlibAlgo):
         "A _MyHashlibAlgo subsclass for sha256"
@@ -868,6 +924,7 @@ class _MySHA1(_MyHashlibAlgo):
     "A _MyHashlibAlgo subsclass for sha1"
     new = lambda d = '': sha1()
 
+
 def auto_version_url(file_path):
     """ Appends modification time of the file to the request URL in order for the
         browser to refresh the cache when file changes
@@ -877,10 +934,12 @@ def auto_version_url(file_path):
     """
     file_md5 = ""
     try:
-        file_md5 = md5(open(cfg.get('CFG_WEBDIR') + os.sep + file_path).read()).hexdigest()
+        file_md5 = md5(open(cfg.get('CFG_WEBDIR') +
+                            os.sep + file_path).read()).hexdigest()
     except IOError:
         pass
     return file_path + "?%s" % file_md5
+
 
 def get_relative_url(url):
     """

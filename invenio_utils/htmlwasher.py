@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2010, 2011, 2012, 2013 CERN.
+# Copyright (C) 2010, 2011, 2012, 2013, 2015 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -17,10 +17,12 @@
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-from invenio_utils.html import HTMLWasher
-from six.moves import html_entities
 import cgi
 import re
+
+from six.moves import html_entities
+
+from invenio_utils.html import HTMLWasher
 
 RE_HTML_FIRST_NON_QUOTATION_CHAR_ON_LINE = re.compile('[^>]')
 
@@ -57,12 +59,13 @@ class EmailWasher(HTMLWasher):
                 if self.previous_type_lists[-1] == 'ol':
                     self.nb += 1
                     self.result += '\n' + self.line_quotation + \
-                                   '  ' * len(self.previous_type_lists) + str(self.nb) + '. '
+                                   '  ' * len(self.previous_type_lists) + \
+                        str(self.nb) + '. '
                 else:
                     self.result += '\n' + self.line_quotation + \
                                    '  ' * len(self.previous_type_lists) + '* '
             elif tag.lower() == 'a':
-                #self.previous_type_lists.append(tag.lower())
+                # self.previous_type_lists.append(tag.lower())
                 for (attr, value) in attrs:
                     if attr.lower() == 'href':
                         self.url = value
@@ -80,7 +83,8 @@ class EmailWasher(HTMLWasher):
             self.result += cgi.escape(data, True)
         lines = data.splitlines()
         if len(lines) > 1:
-            match_obj = RE_HTML_FIRST_NON_QUOTATION_CHAR_ON_LINE.search(lines[-1])
+            match_obj = RE_HTML_FIRST_NON_QUOTATION_CHAR_ON_LINE.search(
+                lines[-1])
             if match_obj:
                 self.line_quotation = '&gt;' * match_obj.start()
             else:

@@ -20,16 +20,20 @@
 
 from __future__ import absolute_import
 
+import cgi
+import json
+import os
+import re
 from HTMLParser import HTMLParser
+
 from six import iteritems
 from werkzeug.local import LocalProxy
+
 from invenio_base.globals import cfg
-from invenio_utils.text import indent_text, encode_for_xml
+from invenio_utils.text import encode_for_xml, indent_text
+
+
 default_ln = lambda ln: cfg['CFG_SITE_LANG'] if ln is None else ln
-import re
-import cgi
-import os
-import json
 
 try:
     from BeautifulSoup import BeautifulSoup
@@ -43,10 +47,23 @@ except ImportError:
     CFG_TIDY_INSTALLED = False
 
 # List of allowed tags (tags that won't create any XSS risk)
-CFG_HTML_BUFFER_ALLOWED_TAG_WHITELIST = ('a',
-                                         'p', 'br', 'blockquote',
-                                         'strong', 'b', 'u', 'i', 'em',
-                                         'ul', 'ol', 'li', 'sub', 'sup', 'div', 'strike')
+CFG_HTML_BUFFER_ALLOWED_TAG_WHITELIST = (
+    'a',
+    'p',
+    'br',
+    'blockquote',
+    'strong',
+    'b',
+    'u',
+    'i',
+    'em',
+    'ul',
+    'ol',
+    'li',
+    'sub',
+    'sup',
+    'div',
+    'strike')
 # List of allowed attributes. Be cautious, some attributes may be risky:
 # <p style="background: url(myxss_suite.js)">
 CFG_HTML_BUFFER_ALLOWED_ATTRIBUTE_WHITELIST = ('href', 'name', 'class')
@@ -56,12 +73,14 @@ RE_HTML = re.compile("(?s)<[^>]*>|&#?\w+;")
 RE_HTML_WITHOUT_ESCAPED_CHARS = re.compile("(?s)<[^>]*>")
 
 # url validation regex
-regex_url = re.compile(r'^(?:http|ftp)s?://' # http:// or https://
-                       r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
-                       r'localhost|' #localhost...
-                       r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
-                       r'(?::\d+)?' # optional port
+regex_url = re.compile(r'^(?:http|ftp)s?://'  # http:// or https://
+                       # domain...
+                       r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'
+                       r'localhost|'  # localhost...
+                       r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
+                       r'(?::\d+)?'  # optional port
                        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+
 
 def nmtoken_from_string(text):
     """
@@ -83,8 +102,9 @@ def nmtoken_from_string(text):
     'Extender' charsets are filtered out).
     """
     text = text.replace('-', '--')
-    return ''.join( [( ((not char.isalnum() and not char in ['.', '-', '_', ':']) and str(ord(char))) or char)
-            for char in text] )
+    return ''.join([(((not char.isalnum() and not char in [
+                   '.', '-', '_', ':']) and str(ord(char))) or char) for char in text])
+
 
 def escape_html(text, escape_quotes=False):
     """Escape all HTML tags, avoiding XSS attacks.
@@ -115,14 +135,22 @@ CFG_JS_CHARS_MAPPINGS = {
     '\r': '\\r',
     '\t': '\\t',
     '\v': '\\v',
-    }
+}
 for i in range(0x20):
     CFG_JS_CHARS_MAPPINGS.setdefault(chr(i), '\\u%04x' % (i,))
 for i in (0x2028, 0x2029):
     CFG_JS_CHARS_MAPPINGS.setdefault(unichr(i), '\\u%04x' % (i,))
-RE_ESCAPE_JS_CHARS = re.compile(u'''[\\x00-\\x1f\\\\"\\\\'\\b\\f\\n\\r\\t\\v\u2028\u2029]''')
+RE_ESCAPE_JS_CHARS = re.compile(
+    u'''[\\x00-\\x1f\\\\"\\\\'\\b\\f\\n\\r\\t\\v\u2028\u2029]''')
 RE_CLOSING_SCRIPT_TAG = re.compile('</script>', re.IGNORECASE)
-def escape_javascript_string(text, escape_for_html=True, escape_quote_for_html=False, escape_CDATA=True, escape_script_tag_with_quote='"'):
+
+
+def escape_javascript_string(
+        text,
+        escape_for_html=True,
+        escape_quote_for_html=False,
+        escape_CDATA=True,
+        escape_script_tag_with_quote='"'):
     """
     Escape text in order to be used as Javascript string in various
     context.
@@ -202,9 +230,11 @@ def escape_javascript_string(text, escape_for_html=True, escape_quote_for_html=F
     text = json.dumps(text)[1:-1].replace("'", "\\'")
 
     if not escape_for_html and escape_script_tag_with_quote:
-        text = RE_CLOSING_SCRIPT_TAG.sub('''</scr%(q)s+%(q)sipt>''' % {'q': escape_script_tag_with_quote}, text)
+        text = RE_CLOSING_SCRIPT_TAG.sub(
+            '''</scr%(q)s+%(q)sipt>''' % {'q': escape_script_tag_with_quote}, text)
 
     return text
+
 
 class HTMLWasher(HTMLParser):
     """
@@ -240,38 +270,39 @@ class HTMLWasher(HTMLParser):
         self.url = ''
         self.render_unallowed_tags = False
         self.allowed_tag_whitelist = \
-                CFG_HTML_BUFFER_ALLOWED_TAG_WHITELIST
+            CFG_HTML_BUFFER_ALLOWED_TAG_WHITELIST
         self.allowed_attribute_whitelist = \
-                CFG_HTML_BUFFER_ALLOWED_ATTRIBUTE_WHITELIST
+            CFG_HTML_BUFFER_ALLOWED_ATTRIBUTE_WHITELIST
         # javascript:
-        self.re_js = re.compile( ".*(j|&#106;|&#74;)"\
-                                "\s*(a|&#97;|&#65;)"\
-                                "\s*(v|&#118;|&#86;)"\
-                                "\s*(a|&#97;|&#65;)"\
-                                "\s*(s|&#115;|&#83;)"\
-                                "\s*(c|&#99;|&#67;)"\
-                                "\s*(r|&#114;|&#82;)"\
-                                "\s*(i|&#195;|&#73;)"\
-                                "\s*(p|&#112;|&#80;)"\
-                                "\s*(t|&#112;|&#84)"\
+        self.re_js = re.compile(".*(j|&#106;|&#74;)"
+                                "\s*(a|&#97;|&#65;)"
+                                "\s*(v|&#118;|&#86;)"
+                                "\s*(a|&#97;|&#65;)"
+                                "\s*(s|&#115;|&#83;)"
+                                "\s*(c|&#99;|&#67;)"
+                                "\s*(r|&#114;|&#82;)"
+                                "\s*(i|&#195;|&#73;)"
+                                "\s*(p|&#112;|&#80;)"
+                                "\s*(t|&#112;|&#84)"
                                 "\s*(:|&#58;).*", re.IGNORECASE | re.DOTALL)
         # vbscript:
-        self.re_vb = re.compile( ".*(v|&#118;|&#86;)"\
-                                "\s*(b|&#98;|&#66;)"\
-                                "\s*(s|&#115;|&#83;)"\
-                                "\s*(c|&#99;|&#67;)"\
-                                "\s*(r|&#114;|&#82;)"\
-                                "\s*(i|&#195;|&#73;)"\
-                                "\s*(p|&#112;|&#80;)"\
-                                "\s*(t|&#112;|&#84;)"\
+        self.re_vb = re.compile(".*(v|&#118;|&#86;)"
+                                "\s*(b|&#98;|&#66;)"
+                                "\s*(s|&#115;|&#83;)"
+                                "\s*(c|&#99;|&#67;)"
+                                "\s*(r|&#114;|&#82;)"
+                                "\s*(i|&#195;|&#73;)"
+                                "\s*(p|&#112;|&#80;)"
+                                "\s*(t|&#112;|&#84;)"
                                 "\s*(:|&#58;).*", re.IGNORECASE | re.DOTALL)
 
-    def wash(self, html_buffer,
-             render_unallowed_tags=False,
-             allowed_tag_whitelist=CFG_HTML_BUFFER_ALLOWED_TAG_WHITELIST,
-             automatic_link_transformation=False,
-             allowed_attribute_whitelist=\
-                    CFG_HTML_BUFFER_ALLOWED_ATTRIBUTE_WHITELIST):
+    def wash(
+            self,
+            html_buffer,
+            render_unallowed_tags=False,
+            allowed_tag_whitelist=CFG_HTML_BUFFER_ALLOWED_TAG_WHITELIST,
+            automatic_link_transformation=False,
+            allowed_attribute_whitelist=CFG_HTML_BUFFER_ALLOWED_ATTRIBUTE_WHITELIST):
         """
         Wash HTML buffer, escaping XSS attacks.
         @param html_buffer: text to escape
@@ -298,18 +329,18 @@ class HTMLWasher(HTMLParser):
     def handle_starttag(self, tag, attrs):
         """Function called for new opening tags"""
         if tag.lower() in self.allowed_tag_whitelist:
-            self.result  += '<' + tag
+            self.result += '<' + tag
             for (attr, value) in attrs:
                 if attr.lower() in self.allowed_attribute_whitelist:
                     self.result += ' %s="%s"' % \
-                                     (attr, self.handle_attribute_value(value))
+                        (attr, self.handle_attribute_value(value))
             self.result += '>'
         else:
             if self.render_unallowed_tags:
                 self.result += '&lt;' + cgi.escape(tag)
                 for (attr, value) in attrs:
                     self.result += ' %s="%s"' % \
-                                     (attr, cgi.escape(value, True))
+                        (attr, cgi.escape(value, True))
                 self.result += '&gt;'
             elif tag == 'style' or tag == 'script':
                 # In that case we want to remove content too
@@ -318,7 +349,8 @@ class HTMLWasher(HTMLParser):
     def handle_data(self, data):
         """Function called for text nodes"""
         if not self.silent:
-            possible_urls = re.findall(r'(https?://[\w\d:#%/;$()~_?\-=\\\.&]*)', data)
+            possible_urls = re.findall(
+                r'(https?://[\w\d:#%/;$()~_?\-=\\\.&]*)', data)
             # validate possible urls
             # we'll transform them just in case
             # they are valid.
@@ -334,7 +366,7 @@ class HTMLWasher(HTMLParser):
     def handle_endtag(self, tag):
         """Function called for ending of tags"""
         if tag.lower() in self.allowed_tag_whitelist:
-            self.result  += '</' + tag + '>'
+            self.result += '</' + tag + '>'
         else:
             if self.render_unallowed_tags:
                 self.result += '&lt;/' + cgi.escape(tag) + '&gt;'
@@ -345,18 +377,18 @@ class HTMLWasher(HTMLParser):
     def handle_startendtag(self, tag, attrs):
         """Function called for empty tags (e.g. <br />)"""
         if tag.lower() in self.allowed_tag_whitelist:
-            self.result  += '<' + tag
+            self.result += '<' + tag
             for (attr, value) in attrs:
                 if attr.lower() in self.allowed_attribute_whitelist:
                     self.result += ' %s="%s"' % \
-                                     (attr, self.handle_attribute_value(value))
+                        (attr, self.handle_attribute_value(value))
             self.result += ' />'
         else:
             if self.render_unallowed_tags:
                 self.result += '&lt;' + cgi.escape(tag)
                 for (attr, value) in attrs:
                     self.result += ' %s="%s"' % \
-                                     (attr, cgi.escape(value, True))
+                        (attr, cgi.escape(value, True))
                 self.result += ' /&gt;'
 
     def handle_attribute_value(self, value):
@@ -374,6 +406,7 @@ class HTMLWasher(HTMLParser):
         """Process a general entity reference of the form "&name;".
         Return it as it is."""
         self.result += '&' + name + ';'
+
 
 def tidy_html(html_buffer, cleaning_lib='utidylib'):
     """
@@ -408,6 +441,7 @@ def tidy_html(html_buffer, cleaning_lib='utidylib'):
 
     return output
 
+
 def get_mathjax_header(https=False):
     """
     Return the snippet of HTML code to put in HTML HEAD tag, in order to
@@ -441,22 +475,36 @@ MathJax.Hub.Config({
 </script>
 <script src="%(mathjax_path)s/MathJax.js?config=%(mathjax_config)s" type="text/javascript">
 </script>""" % {
-    'mathjax_path': mathjax_path,
-    'mathjax_config': mathjax_config,
-}
+        'mathjax_path': mathjax_path,
+        'mathjax_config': mathjax_config,
+    }
+
 
 def is_html_text_editor_installed():
     """
     Returns True if the wysiwyg editor (CKeditor) is installed
     """
-    return os.path.exists(os.path.join(cfg['CFG_WEBDIR'], 'ckeditor', 'ckeditor.js'))
+    return os.path.exists(
+        os.path.join(
+            cfg['CFG_WEBDIR'],
+            'ckeditor',
+            'ckeditor.js'))
 
 ckeditor_available = LocalProxy(is_html_text_editor_installed)
 
-def get_html_text_editor(name, id=None, content='', textual_content=None, width='300px', height='200px',
-                         enabled=True, file_upload_url=None, toolbar_set="Basic",
-                         custom_configurations_path='/js/ckeditor/invenio-ckeditor-config.js',
-                         ln=None):
+
+def get_html_text_editor(
+        name,
+        id=None,
+        content='',
+        textual_content=None,
+        width='300px',
+        height='200px',
+        enabled=True,
+        file_upload_url=None,
+        toolbar_set="Basic",
+        custom_configurations_path='/js/ckeditor/invenio-ckeditor-config.js',
+        ln=None):
     """
     Returns a wysiwyg editor (CKEditor) to embed in html pages.
 
@@ -582,30 +630,31 @@ def get_html_text_editor(name, id=None, content='', textual_content=None, width=
 
         //]]></script>
         ''' % \
-          {'textual_content': cgi.escape(textual_content),
-           'html_content': content,
-           'width': width,
-           'height': height,
-           'name': name,
-           'id': id or name,
-           'custom_configurations_path': custom_configurations_path,
-           'toolbar': toolbar_set,
-           'file_upload_script': file_upload_script,
-           'CFG_SITE_URL': cfg['CFG_SITE_URL'],
-           'ln': ln}
+            {'textual_content': cgi.escape(textual_content),
+             'html_content': content,
+             'width': width,
+             'height': height,
+             'name': name,
+             'id': id or name,
+             'custom_configurations_path': custom_configurations_path,
+             'toolbar': toolbar_set,
+             'file_upload_script': file_upload_script,
+             'CFG_SITE_URL': cfg['CFG_SITE_URL'],
+             'ln': ln}
 
     else:
         # CKedior is not installed
         textarea = '<textarea rows="100" cols="80" %(id)s name="%(name)s" style="width:%(width)s;height:%(height)s">%(content)s</textarea>' \
-                     % {'content': cgi.escape(textual_content),
-                        'width': width,
-                        'height': height,
-                        'name': name,
-                        'id': id and ('id="%s"' % id) or ''}
+            % {'content': cgi.escape(textual_content),
+               'width': width,
+               'height': height,
+               'name': name,
+               'id': id and ('id="%s"' % id) or ''}
         editor += textarea
         editor += '<input type="hidden" name="editor_type" value="textarea" />'
 
     return editor
+
 
 def remove_html_markup(text, replacechar=' ', remove_escaped_chars_p=True):
     """
@@ -625,6 +674,7 @@ def remove_html_markup(text, replacechar=' ', remove_escaped_chars_p=True):
     if not remove_escaped_chars_p:
         return RE_HTML_WITHOUT_ESCAPED_CHARS.sub(replacechar, text)
     return RE_HTML.sub(replacechar, text)
+
 
 def unescape(s, quote=False):
     """
@@ -649,6 +699,7 @@ class EscapedString(str):
     """
     pass
 
+
 class EscapedHTMLString(EscapedString):
     """
     This class automatically escape a non-escaped string used to initialize
@@ -661,17 +712,20 @@ class EscapedHTMLString(EscapedString):
             if original_string and not str(original_string).strip():
                 escaped_string = '&nbsp;'
             else:
-                escaped_string = cgi.escape(str(original_string), escape_quotes)
+                escaped_string = cgi.escape(
+                    str(original_string), escape_quotes)
         obj = str.__new__(cls, escaped_string)
         obj.original_string = original_string
         obj.escape_quotes = escape_quotes
         return obj
 
     def __repr__(self):
-        return 'EscapedHTMLString(%s, %s)' % (repr(self.original_string), repr(self.escape_quotes))
+        return 'EscapedHTMLString(%s, %s)' % (
+            repr(self.original_string), repr(self.escape_quotes))
 
     def __add__(self, rhs):
         return EscapedHTMLString(EscapedString(str(self) + str(rhs)))
+
 
 class EscapedXMLString(EscapedString):
     """
@@ -685,19 +739,31 @@ class EscapedXMLString(EscapedString):
             if original_string and not str(original_string).strip():
                 escaped_string = '&nbsp;'
             else:
-                escaped_string = encode_for_xml(str(original_string), wash=True, quote=escape_quotes)
+                escaped_string = encode_for_xml(
+                    str(original_string), wash=True, quote=escape_quotes)
         obj = str.__new__(cls, escaped_string)
         obj.original_string = original_string
         obj.escape_quotes = escape_quotes
         return obj
 
     def __repr__(self):
-        return 'EscapedXMLString(%s, %s)' % (repr(self.original_string), repr(self.escape_quotes))
+        return 'EscapedXMLString(%s, %s)' % (
+            repr(self.original_string), repr(self.escape_quotes))
 
     def __add__(self, rhs):
         return EscapedXMLString(EscapedString(str(self) + str(rhs)))
 
-def create_tag(tag, escaper=EscapedHTMLString, opening_only=False, body=None, escape_body=False, escape_attr=True, indent=0, attrs=None, **other_attrs):
+
+def create_tag(
+        tag,
+        escaper=EscapedHTMLString,
+        opening_only=False,
+        body=None,
+        escape_body=False,
+        escape_attr=True,
+        indent=0,
+        attrs=None,
+        **other_attrs):
     """
     Create an XML/HTML tag.
 
@@ -759,6 +825,7 @@ def create_tag(tag, escaper=EscapedHTMLString, opening_only=False, body=None, es
     from invenio_utils.text import wash_for_utf8
     return EscapedString(wash_for_utf8(out))
 
+
 class MLClass(object):
     """
     Swiss army knife to generate XML or HTML strings a la carte.
@@ -788,22 +855,46 @@ class MLClass(object):
         self.escaper = escaper
 
     def __getattr__(self, tag):
-        def tag_creator(body=None, opening_only=False, escape_body=False, escape_attr=True, indent=0, attrs=None, **other_attrs):
+        def tag_creator(
+                body=None,
+                opening_only=False,
+                escape_body=False,
+                escape_attr=True,
+                indent=0,
+                attrs=None,
+                **other_attrs):
             if body:
-                return create_tag(tag, body=body, opening_only=opening_only, escape_body=escape_body, escape_attr=escape_attr, indent=indent, attrs=attrs, **other_attrs)
+                return create_tag(
+                    tag,
+                    body=body,
+                    opening_only=opening_only,
+                    escape_body=escape_body,
+                    escape_attr=escape_attr,
+                    indent=indent,
+                    attrs=attrs,
+                    **other_attrs)
             else:
                 def handle_body(*other_bodies):
                     full_body = None
                     if other_bodies:
                         full_body = ""
                         for body in other_bodies:
-                            if callable(body) and body.__name__ == 'handle_body':
+                            if callable(
+                                    body) and body.__name__ == 'handle_body':
                                 full_body += body()
                             elif isinstance(body, EscapedString):
                                 full_body += body
                             else:
                                 full_body += self.escaper(str(body))
-                    return create_tag(tag, body=full_body, opening_only=opening_only, escape_body=escape_body, escape_attr=escape_attr, indent=indent, attrs=attrs, **other_attrs)
+                    return create_tag(
+                        tag,
+                        body=full_body,
+                        opening_only=opening_only,
+                        escape_body=escape_body,
+                        escape_attr=escape_attr,
+                        indent=indent,
+                        attrs=attrs,
+                        **other_attrs)
                 return handle_body
         return tag_creator
 
@@ -813,7 +904,15 @@ class MLClass(object):
 H = MLClass(EscapedHTMLString)
 X = MLClass(EscapedXMLString)
 
-def create_html_select(options, name=None, selected=None, disabled=None, multiple=False, attrs=None, **other_attrs):
+
+def create_html_select(
+        options,
+        name=None,
+        selected=None,
+        disabled=None,
+        multiple=False,
+        attrs=None,
+        **other_attrs):
     """
     Create an HTML select box.
 
@@ -887,7 +986,8 @@ def create_html_select(options, name=None, selected=None, disabled=None, multipl
             elif isinstance(item, (tuple, list)) and len(item) == 2:
                 items.append(tuple(item))
             else:
-                raise ValueError('Item "%s" of incompatible type: %s' % (item, type(item)))
+                raise ValueError(
+                    'Item "%s" of incompatible type: %s' % (item, type(item)))
     else:
         raise ValueError('Options of incompatible type: %s' % type(options))
     for key, value in items:
@@ -896,14 +996,25 @@ def create_html_select(options, name=None, selected=None, disabled=None, multipl
             option_attrs['selected'] = 'selected'
         if key in disabled:
             option_attrs['disabled'] = 'disabled'
-        body.append(create_tag("option", body=value, escape_body=True, value=key, attrs=option_attrs))
+        body.append(
+            create_tag(
+                "option",
+                body=value,
+                escape_body=True,
+                value=key,
+                attrs=option_attrs))
     if attrs is None:
         attrs = {}
     if name is not None:
         attrs['name'] = name
     if multiple:
         attrs['multiple'] = 'multiple'
-    return create_tag("select", body='\n'.join(body), attrs=attrs, **other_attrs)
+    return create_tag(
+        "select",
+        body='\n'.join(body),
+        attrs=attrs,
+        **other_attrs)
+
 
 class _LinkGetter(HTMLParser):
     """
@@ -911,6 +1022,7 @@ class _LinkGetter(HTMLParser):
     <a> tags and retrieve the corresponding href attribute.
     All URLs are available in the urls attribute of the class.
     """
+
     def __init__(self):
         HTMLParser.__init__(self)
         self.urls = set()
@@ -920,6 +1032,7 @@ class _LinkGetter(HTMLParser):
             for (name, value) in attrs:
                 if name == 'href':
                     self.urls.add(value)
+
 
 def get_links_in_html_page(html):
     """

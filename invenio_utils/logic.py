@@ -64,6 +64,7 @@ def isnumber(x):
     "Is x a number? We say it is if it has a __int__ method."
     return hasattr(x, '__int__')
 
+
 def num_or_str(x):
     """The argument is a string; convert to a number if possible, or strip it.
     >>> num_or_str('42')
@@ -71,7 +72,8 @@ def num_or_str(x):
     >>> num_or_str(' 42x ')
     '42x'
     """
-    if isnumber(x): return x
+    if isnumber(x):
+        return x
     try:
         return int(x)
     except ValueError:
@@ -80,6 +82,7 @@ def num_or_str(x):
         except ValueError:
             return str(x).strip()
 
+
 def find_if(predicate, seq):
     """If there is an element of seq that satisfies predicate; return it.
     >>> find_if(callable, [3, min, max])
@@ -87,12 +90,14 @@ def find_if(predicate, seq):
     >>> find_if(callable, [1, 2, 3])
     """
     for x in seq:
-        if predicate(x): return x
+        if predicate(x):
+            return x
     return None
 
 #
 # Expr represents a symbolic mathematical expression
 #______________________________________________________________________________
+
 
 def expr(s):
     """Create an Expr representing a logic expression by parsing the input
@@ -111,15 +116,17 @@ def expr(s):
 
     WARNING: Uses eval()!  Do not use with unsanitized inputs!
     """
-    if isinstance(s, Expr): return s
-    if isnumber(s): return Expr(s)
-    ## Replace the alternative spellings of operators with canonical spellings
+    if isinstance(s, Expr):
+        return s
+    if isnumber(s):
+        return Expr(s)
+    # Replace the alternative spellings of operators with canonical spellings
     s = s.replace('==>', '>>').replace('<==', '<<')
     s = s.replace('<=>', '%').replace('=/=', '^')
-    ## Replace a symbol or number, such as 'P' with 'Expr("P")'
+    # Replace a symbol or number, such as 'P' with 'Expr("P")'
     s = re.sub(r'([a-zA-Z0-9_.]+)', r'Expr("\1")', s)
-    ## Now eval the string.  (A security hole; do not use with an adversary.)
-    return eval(s, {'Expr':Expr})
+    # Now eval the string.  (A security hole; do not use with an adversary.)
+    return eval(s, {'Expr': Expr})
 
 
 class Expr:
@@ -172,7 +179,7 @@ class Expr:
         "Op is a string or number; args are Exprs (or are coerced to Exprs)."
         assert isinstance(op, str) or (isnumber(op) and not args)
         self.op = num_or_str(op)
-        self.args = map(expr, args) ## Coerce args to Exprs
+        self.args = map(expr, args)  # Coerce args to Exprs
 
     def __call__(self, *args):
         """Self must be a symbol with no args, such as Expr('F').  Create a new
@@ -182,19 +189,22 @@ class Expr:
 
     def __repr__(self):
         "Show something like 'P' or 'P(x, y)', or '~P' or '(P | Q | R)'"
-        if len(self.args) == 0: # Constant or proposition with arity 0
+        if len(self.args) == 0:  # Constant or proposition with arity 0
             return str(self.op)
-        elif is_symbol(self.op): # Functional or Propositional operator
+        elif is_symbol(self.op):  # Functional or Propositional operator
             return '%s(%s)' % (self.op, ', '.join(map(repr, self.args)))
-        elif len(self.args) == 1: # Prefix operator
+        elif len(self.args) == 1:  # Prefix operator
             return self.op + repr(self.args[0])
-        else: # Infix operator
-            return '(%s)' % (' '+self.op+' ').join(map(repr, self.args))
+        else:  # Infix operator
+            return '(%s)' % (' ' + self.op + ' ').join(map(repr, self.args))
 
     def __eq__(self, other):
         """x and y are equal iff their ops and args are equal."""
-        return (other is self) or (isinstance(other, Expr)
-            and self.op == other.op and self.args == other.args)
+        return (
+            other is self) or (
+            isinstance(
+                other,
+                Expr) and self.op == other.op and self.args == other.args)
 
     def __hash__(self):
         "Need a hash method so Exprs can live in dicts."
@@ -206,55 +216,75 @@ class Expr:
     # See http://www.python.org/doc/current/lib/module-operator.html
     # Not implemented: not, abs, pos, concat, contains, *item, *slice
     def __lt__(self, other):
-        return Expr('<',  self, other)
+        return Expr('<', self, other)
+
     def __le__(self, other):
         return Expr('<=', self, other)
+
     def __ge__(self, other):
         return Expr('>=', self, other)
+
     def __gt__(self, other):
-        return Expr('>',  self, other)
+        return Expr('>', self, other)
+
     def __add__(self, other):
-        return Expr('+',  self, other)
+        return Expr('+', self, other)
+
     def __sub__(self, other):
-        return Expr('-',  self, other)
+        return Expr('-', self, other)
+
     def __and__(self, other):
-        return Expr('&',  self, other)
+        return Expr('&', self, other)
+
     def __div__(self, other):
-        return Expr('/',  self, other)
+        return Expr('/', self, other)
+
     def __truediv__(self, other):
-        return Expr('/',  self, other)
+        return Expr('/', self, other)
+
     def __invert__(self):
-        return Expr('~',  self)
+        return Expr('~', self)
+
     def __lshift__(self, other):
         return Expr('<<', self, other)
+
     def __rshift__(self, other):
         return Expr('>>', self, other)
+
     def __mul__(self, other):
-        return Expr('*',  self, other)
+        return Expr('*', self, other)
+
     def __neg__(self):
-        return Expr('-',  self)
+        return Expr('-', self)
+
     def __or__(self, other):
-        return Expr('|',  self, other)
+        return Expr('|', self, other)
+
     def __pow__(self, other):
         return Expr('**', self, other)
+
     def __xor__(self, other):
-        return Expr('^',  self, other)
+        return Expr('^', self, other)
+
     def __mod__(self, other):
-        return Expr('<=>',  self, other) ## (x % y)
+        return Expr('<=>', self, other)  # (x % y)
 
 
 def is_symbol(s):
     "A string s is a symbol if it starts with an alphabetic char."
     return isinstance(s, str) and s[0].isalpha()
 
+
 def is_var_symbol(s):
     "A logic variable symbol is an initial-lowercase string."
     return is_symbol(s) and s[0].islower()
+
 
 def is_prop_symbol(s):
     """A proposition logic symbol is an initial-uppercase string other than
     TRUE or FALSE."""
     return is_symbol(s) and s[0].isupper() and s != 'TRUE' and s != 'FALSE'
+
 
 def is_positive(s):
     """s is an unnegated logical expression
@@ -265,6 +295,7 @@ def is_positive(s):
     """
     return s.op != '~'
 
+
 def is_negative(s):
     """s is a negated logical expression
     >>> is_negative(expr('F(A, B)'))
@@ -273,6 +304,7 @@ def is_negative(s):
     True
     """
     return s.op == '~'
+
 
 def is_literal(s):
     """s is a FOL literal
@@ -284,6 +316,7 @@ def is_literal(s):
     False
     """
     return is_symbol(s.op) or (s.op == '~' and is_literal(s.args[0]))
+
 
 def literals(s):
     """returns the list of literals of logical expression s.
@@ -305,6 +338,7 @@ def literals(s):
     else:
         return []
 
+
 def variables(s):
     """returns the set of variables in logical expression s.
     >>> ppset(variables(F(x, A, y)))
@@ -325,6 +359,7 @@ TRUE, FALSE, ZERO, ONE, TWO = map(Expr, ['TRUE', 'FALSE', 0, 1, 2])
 
 #______________________________________________________________________________
 
+
 def prop_symbols(x):
     "Return a list of all propositional symbols in x."
     if not isinstance(x, Expr):
@@ -337,6 +372,7 @@ def prop_symbols(x):
             for symbol in prop_symbols(arg):
                 s.add(symbol)
         return list(s)
+
 
 def pl_true(exp, model={}):
     """Return True if the propositional logic expression is true in the model,
@@ -352,21 +388,27 @@ def pl_true(exp, model={}):
         return model.get(exp)
     elif op == '~':
         p = pl_true(args[0], model)
-        if p == None: return None
-        else: return not p
+        if p is None:
+            return None
+        else:
+            return not p
     elif op == '|':
         result = False
         for arg in args:
             p = pl_true(arg, model)
-            if p == True: return True
-            if p == None: result = None
+            if p:
+                return True
+            if p is None:
+                result = None
         return result
     elif op == '&':
         result = True
         for arg in args:
             p = pl_true(arg, model)
-            if p == False: return False
-            if p == None: result = None
+            if not p:
+                return False
+            if p is None:
+                result = None
         return result
     p, q = args
     if op == '>>':
@@ -374,19 +416,22 @@ def pl_true(exp, model={}):
     elif op == '<<':
         return pl_true(p | ~q, model)
     pt = pl_true(p, model)
-    if pt == None: return None
+    if pt is None:
+        return None
     qt = pl_true(q, model)
-    if qt == None: return None
+    if qt is None:
+        return None
     if op == '<=>':
         return pt == qt
     elif op == '^':
         return pt != qt
     else:
-        raise ValueError, "illegal operator in logic expression" + str(exp)
+        raise ValueError("illegal operator in logic expression" + str(exp))
 
 #______________________________________________________________________________
 
 # Convert to Conjunctive Normal Form (CNF)
+
 
 def to_cnf(s):
     """Convert a propositional logical sentence s to conjunctive normal form.
@@ -403,10 +448,12 @@ def to_cnf(s):
     WARNING: Passes through expr(), which uses eval() - Do not use with
              unsanitized inputs!
     """
-    if isinstance(s, str): s = expr(s)
-    s = eliminate_implications(s) # Steps 1, 2 from p. 215
-    s = move_not_inwards(s) # Step 3
-    return distribute_and_over_or(s) # Step 4
+    if isinstance(s, str):
+        s = expr(s)
+    s = eliminate_implications(s)  # Steps 1, 2 from p. 215
+    s = move_not_inwards(s)  # Step 3
+    return distribute_and_over_or(s)  # Step 4
+
 
 def eliminate_implications(s):
     """Change >>, <<, and <=> into &, |, and ~. That is, return an Expr
@@ -414,7 +461,8 @@ def eliminate_implications(s):
     >>> eliminate_implications(A >> (~B << C))
     ((~B | ~C) | ~A)
     """
-    if not s.args or is_symbol(s.op): return s     ## (Atoms are unchanged.)
+    if not s.args or is_symbol(s.op):
+        return s  # (Atoms are unchanged.)
     args = map(eliminate_implications, s.args)
     a, b = args[0], args[-1]
     if s.op == '>>':
@@ -425,6 +473,7 @@ def eliminate_implications(s):
         return (a | ~b) & (b | ~a)
     else:
         return Expr(s.op, *args)
+
 
 def move_not_inwards(s):
     """Rewrite sentence s by moving negation sign inward.
@@ -439,7 +488,7 @@ def move_not_inwards(s):
         NOT = lambda b: move_not_inwards(~b)
         a = s.args[0]
         if a.op == '~':
-            return move_not_inwards(a.args[0]) # ~~A ==> A
+            return move_not_inwards(a.args[0])  # ~~A ==> A
         if a.op == '&':
             return NaryExpr('|', *map(NOT, a.args))
         if a.op == '|':
@@ -449,6 +498,7 @@ def move_not_inwards(s):
         return s
     else:
         return Expr(s.op, *map(move_not_inwards, s.args))
+
 
 def distribute_and_over_or(s):
     """Given a sentence s consisting of conjunctions and disjunctions
@@ -471,13 +521,14 @@ def distribute_and_over_or(s):
         else:
             rest = NaryExpr('|', *others)
         return NaryExpr('&', *map(distribute_and_over_or,
-                                  [(c|rest) for c in conj.args]))
+                                  [(c | rest) for c in conj.args]))
     elif s.op == '&':
         return NaryExpr('&', *map(distribute_and_over_or, s.args))
     else:
         return s
 
-_NaryExprTable = {'&':TRUE, '|':FALSE, '+':ZERO, '*':ONE}
+_NaryExprTable = {'&': TRUE, '|': FALSE, '+': ZERO, '*': ONE}
+
 
 def NaryExpr(op, *args):
     """Create an Expr, but with an nary, associative op, so we can promote
@@ -487,14 +538,17 @@ def NaryExpr(op, *args):
     """
     arglist = []
     for arg in args:
-        if arg.op == op: arglist.extend(arg.args)
-        else: arglist.append(arg)
+        if arg.op == op:
+            arglist.extend(arg.args)
+        else:
+            arglist.append(arg)
     if len(args) == 1:
         return args[0]
     elif len(args) == 0:
         return _NaryExprTable[op]
     else:
         return Expr(op, *arglist)
+
 
 def conjuncts(s):
     """Return a list of the conjuncts in the sentence s.
@@ -507,6 +561,7 @@ def conjuncts(s):
         return s.args
     else:
         return [s]
+
 
 def disjuncts(s):
     """Return a list of the disjuncts in the sentence s.
@@ -524,6 +579,7 @@ def disjuncts(s):
 
 # DPLL-Satisfiable [Fig. 7.16]
 
+
 def find_pure_symbol(symbols, unknown_clauses):
     """Find a symbol and its value if it appears only as a positive literal
     (or only as a negative) in clauses.
@@ -540,6 +596,7 @@ def find_pure_symbol(symbols, unknown_clauses):
         if found_pos != found_neg:
             return s, found_pos
     return None, None
+
 
 def find_unit_clause(clauses, model):
     """A unit clause has only 1 variable that is not bound in the model.
@@ -572,9 +629,11 @@ def literal_symbol(literal):
 
 #______________________________________________________________________________
 
+
 def is_variable(x):
     "A variable is an Expr with no args and a lowercase symbol as the op."
     return isinstance(x, Expr) and not x.args and is_var_symbol(x.op)
+
 
 def occur_check(var, x, s):
     """Return true if variable var occurs anywhere in x
@@ -583,7 +642,7 @@ def occur_check(var, x, s):
     if var == x:
         return True
     elif is_variable(x) and x in s:
-        return occur_check(var, s[x], s) # fixed
+        return occur_check(var, s[x], s)  # fixed
     # What else might x be?  an Expr, a list, a string?
     elif isinstance(x, Expr):
         # Compare operator and arguments
@@ -597,12 +656,13 @@ def occur_check(var, x, s):
         # A variable cannot occur in a string
         return False
 
-    #elif isinstance(x, Expr):
+    # elif isinstance(x, Expr):
     #    return var.op == x.op or occur_check(var, x.args)
-    #elif not isinstance(x, str) and issequence(x):
+    # elif not isinstance(x, str) and issequence(x):
     #    for xi in x:
     #        if occur_check(var, xi): return True
-    #return False
+    # return False
+
 
 def extend(s, var, val):
     """Copy the substitution s and extend it by setting var to val;
@@ -614,6 +674,7 @@ def extend(s, var, val):
     s2 = s.copy()
     s2[var] = val
     return s2
+
 
 def subst(s, x):
     """Substitute the substitution s into the expression x.
@@ -646,8 +707,10 @@ def diff(y, x):
     >>> simp(diff(x * x, x))
     (2 * x)
     """
-    if y == x: return ONE
-    elif not y.args: return ZERO
+    if y == x:
+        return ONE
+    elif not y.args:
+        return ZERO
     else:
         u, op, v = y.args[0], y.op, y.args[-1]
         if op == '+':
@@ -659,18 +722,21 @@ def diff(y, x):
         elif op == '*':
             return u * diff(v, x) + v * diff(u, x)
         elif op == '/':
-            return (v*diff(u, x) - u*diff(v, x)) / (v * v)
+            return (v * diff(u, x) - u * diff(v, x)) / (v * v)
         elif op == '**' and isnumber(x.op):
             return (v * u ** (v - 1) * diff(u, x))
         elif op == '**':
             return (v * u ** (v - 1) * diff(u, x)
-                      + u ** v * Expr('log')(u) * diff(v, x))
+                    + u ** v * Expr('log')(u) * diff(v, x))
         elif op == 'log':
             return diff(u, x) / u
-        else: raise ValueError("Unknown op: %s in diff(%s, %s)" % (op, y, x))
+        else:
+            raise ValueError("Unknown op: %s in diff(%s, %s)" % (op, y, x))
+
 
 def simp(x):
-    if not x.args: return x
+    if not x.args:
+        return x
     args = map(simp, x.args)
     u, op, v = args[0], x.op, args[-1]
     if op == '+':
@@ -684,7 +750,7 @@ def simp(x):
             return ZERO
     elif op == '-' and len(args) == 1:
         if u.op == '-' and len(u.args) == 1:
-            return u.args[0] ## --y ==> y
+            return u.args[0]  # --y ==> y
     elif op == '-':
         if v == ZERO:
             return u
@@ -724,15 +790,17 @@ def simp(x):
     elif op == 'log':
         if u == ONE:
             return ZERO
-    else: raise ValueError("Unknown op: " + op)
-    ## If we fall through to here, we can not simplify further
+    else:
+        raise ValueError("Unknown op: " + op)
+    # If we fall through to here, we can not simplify further
     return Expr(op, *args)
 
-#_______________________________________________________________________________
+#_________________________________________________________________________
 
 # Utilities for doctest cases
 # These functions print their arguments in a standard order
 # to compensate for the random order in the standard representation
+
 
 def pretty(x):
     t = type(x)
@@ -740,6 +808,7 @@ def pretty(x):
         return pretty_dict(x)
     elif t == set:
         return pretty_set(x)
+
 
 def pretty_dict(ugly_dict):
     """Print the dictionary ugly_dict.
@@ -765,6 +834,7 @@ def pretty_dict(ugly_dict):
         ugly_dictpairs += (', ' + format(k, v))
     return '{%s}' % ugly_dictpairs
 
+
 def pretty_set(s):
     """Print the set s.
 
@@ -778,15 +848,19 @@ def pretty_set(s):
     slist.sort(key=str)
     return 'set(%s)' % slist
 
+
 def pp(x):
     print(pretty(x))
+
 
 def ppsubst(s):
     """Pretty-print substitution s"""
     ppdict(s)
 
+
 def ppdict(d):
     print(pretty_dict(d))
+
 
 def ppset(s):
     print(pretty_set(s))

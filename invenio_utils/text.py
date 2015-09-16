@@ -21,26 +21,28 @@
 
 from __future__ import print_function
 
-__revision__ = "$Id$"
-
 import re
-
 import sys
-
 import textwrap
 
 import pkg_resources
-
 import six
-
 from six.moves import html_entities
+from unidecode import unidecode
+
+__revision__ = "$Id$"
+
+
+
+
+
+
 try:
     import chardet
     CHARDET_AVAILABLE = True
 except ImportError:
     CHARDET_AVAILABLE = False
 
-from unidecode import unidecode
 
 CFG_LATEX_UNICODE_TRANSLATION_CONST = {}
 
@@ -300,7 +302,7 @@ def wrap_text_in_a_box(body='', title='', style='double_star', **args):
     bottom_border = border[5] \
         + (border[6] * mid_bottom_border_len)[:mid_bottom_border_len] \
         + border[7]
-    if type(horiz_sep) is tuple and len(horiz_sep) == 3:
+    if isinstance(horiz_sep, tuple) and len(horiz_sep) == 3:
         horiz_line = horiz_sep[0] + \
             (horiz_sep[1] * (max_col + 2))[:(max_col + 2)] + horiz_sep[2]
     else:
@@ -446,7 +448,7 @@ def nice_number(number, thousands_separator=',', max_ndigits_after_dot=None):
     This version does not pay attention to locale.  See
     tmpl_nice_number_via_locale().
     """
-    if type(number) is float:
+    if isinstance(number, float):
         if max_ndigits_after_dot is not None:
             number = round(number, max_ndigits_after_dot)
         int_part, frac_part = str(number).split('.')
@@ -655,10 +657,10 @@ def translate_to_ascii(values):
     :return: sequence with values transformed to ascii
     :rtype: sequence
     """
-    if not values and not type(values) == str:
+    if not values and not isinstance(values, str):
         return values
 
-    if type(values) == str:
+    if isinstance(values, str):
         values = [values]
     for index, value in enumerate(values):
         if not value:

@@ -4,11 +4,13 @@
 # under PSF license.  It was taken from
 # <http://code.activestate.com/recipes/410469/>.
 
-import six
 import xml.etree.ElementTree as ElementTree
+
+import six
 
 
 class XmlListConfig(list):
+
     def __init__(self, aList):
         for element in aList:
             if element:
@@ -39,6 +41,7 @@ class XmlDictConfig(dict):
 
     And then use xmldict for what it is... a dict.
     '''
+
     def __init__(self, parent_element):
         if parent_element.items():
             self.update(dict(parent_element.items()))
@@ -71,18 +74,20 @@ class XmlDictConfig(dict):
                 if len(element.items()) == 1 and not list(element):
                     # check if its str or unicode and if the text is empty,
                     # otherwise the tag has empty text, no need to add it
-                    if isinstance(element.text, six.string_types) and element.text.strip() != '':
+                    if isinstance(
+                            element.text,
+                            six.string_types) and element.text.strip() != '':
                         # we have an attribute in the tag that specifies
                         # most probably the type of the text
                         tag = element.items()[0][1]
                         self.update({element.tag: dict({tag: element.text})})
                 else:
                     self.update({element.tag: dict(element.items())})
-                    if not list(element) and isinstance(element.text, six.string_types)\
-                        and element.text.strip() != '':
+                    if not list(element) and isinstance(
+                            element.text, six.string_types
+                            ) and element.text.strip() != '':
                         self[element.tag].update(dict({"text": element.text}))
             # finally, if there are no child tags and no attributes, extract
             # the text
             else:
                 self.update({element.tag: element.text})
-

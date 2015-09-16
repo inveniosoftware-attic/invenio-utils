@@ -17,11 +17,10 @@
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 """Implements custom serializers."""
 
-import marshal
 import zlib
 
+import marshal
 from backports import lzma
-
 from six.moves import cPickle as pickle
 
 __all__ = ['ZlibMarshal',

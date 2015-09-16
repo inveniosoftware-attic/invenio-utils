@@ -1,5 +1,5 @@
 # This file is part of Invenio.
-# Copyright (C) 2007, 2008, 2010, 2011 CERN.
+# Copyright (C) 2007, 2008, 2010, 2011, 2015 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -26,8 +26,8 @@ import mimetypes
 import re
 import time
 from xml.sax.saxutils import unescape
-from invenio.config import CFG_CERN_SITE
 
+from invenio.config import CFG_CERN_SITE
 
 if CFG_CERN_SITE:
     # A host mirroring W3C validator
@@ -49,8 +49,8 @@ CFG_TESTS_REQUIRE_HTML_VALIDATION = False
 
 
 def w3c_validate(text, host=CFG_W3C_VALIDATOR_HOST,
-        selector=CFG_W3C_VALIDATOR_SELECTOR,
-        sleep_p=CFG_W3C_VALIDATOR_SLEEP_P):
+                 selector=CFG_W3C_VALIDATOR_SELECTOR,
+                 sleep_p=CFG_W3C_VALIDATOR_SLEEP_P):
     """ Validate the text against W3C validator like host, with a given selector
     and eventually sleeping for a second.
     Return a triple, with True if the document validate as the first element.
@@ -60,17 +60,21 @@ def w3c_validate(text, host=CFG_W3C_VALIDATOR_HOST,
 
     if sleep_p:
         time.sleep(1)
-    h = _post_multipart(host, selector, \
-        [('output', 'soap12')], [('uploaded_file', 'foobar.html', text)])
+    h = _post_multipart(
+        host, selector, [
+            ('output', 'soap12')], [
+            ('uploaded_file', 'foobar.html', text)])
     errcode, errmsg, headers = h.getreply()
     if 'X-W3C-Validator-Status' in headers:
         if headers['X-W3C-Validator-Status'] == 'Valid':
             return (True, [], [])
         else:
-            errors, warnings = _parse_validator_soap(h.file.read(), text.split('\n'))
+            errors, warnings = _parse_validator_soap(
+                h.file.read(), text.split('\n'))
             return (False, errors, warnings)
     else:
         return (False, [], [])
+
 
 def w3c_errors_to_str(errors, warnings):
     """ Pretty print errors and warnings coming from w3c_validate """
@@ -78,22 +82,25 @@ def w3c_errors_to_str(errors, warnings):
     if errors:
         ret += '%s errors:\n' % len(errors)
         for line, col, msg, text in errors:
-            ret += '%s (%s:%s):\n' % (unescape(msg, {'&quot;': "'"}), line, col)
+            ret += '%s (%s:%s):\n' % (unescape(msg,
+                                               {'&quot;': "'"}), line, col)
             ret += text + '\n'
-            ret += ' '*(int(col)-1) + '^\n'
+            ret += ' ' * (int(col) - 1) + '^\n'
             ret += '---\n'
     if warnings:
         ret += '%s warnings:\n' % len(warnings)
         for line, col, msg, text in warnings:
-            ret += '%s (%s:%s):\n' % (unescape(msg, {'&quot;': "'"}), line, col)
+            ret += '%s (%s:%s):\n' % (unescape(msg,
+                                               {'&quot;': "'"}), line, col)
             ret += text + '\n'
-            ret += ' '*(int(col)-1) + '^\n'
+            ret += ' ' * (int(col) - 1) + '^\n'
             ret += '---\n'
     return ret
 
+
 def w3c_validate_p(text, host=CFG_W3C_VALIDATOR_HOST,
-        selector=CFG_W3C_VALIDATOR_SELECTOR,
-        sleep_p=CFG_W3C_VALIDATOR_SLEEP_P):
+                   selector=CFG_W3C_VALIDATOR_SELECTOR,
+                   sleep_p=CFG_W3C_VALIDATOR_SLEEP_P):
     """ Validate the text against W3C validator like host, with a given selector
     and eventually sleeping for a second.
     Return a True if the document validate.
@@ -101,20 +108,30 @@ def w3c_validate_p(text, host=CFG_W3C_VALIDATOR_HOST,
 
     if sleep_p:
         time.sleep(1)
-    h = _post_multipart(host, selector, \
-        [('output', 'soap12')], [('uploaded_file', 'foobar.html', text)])
+    h = _post_multipart(
+        host, selector, [
+            ('output', 'soap12')], [
+            ('uploaded_file', 'foobar.html', text)])
     errcode, errmsg, headers = h.getreply()
     if 'X-W3C-Validator-Status' in headers:
         return headers['X-W3C-Validator-Status'] == 'Valid'
     return False
 
 
-_errors_re = re.compile(r'<m:errors>.*<m:errorcount>(?P<errorcount>[\d]+)\</m:errorcount>.*<m:errorlist>(?P<errors>.*)</m:errorlist>.*</m:errors>', re.M | re.S)
-_warnings_re = re.compile(r'<m:warnings>.*<m:warningcount>(?P<warningcount>[\d]+)</m:warningcount>.*<m:warninglist>(?P<warnings>.*)</m:warninglist>.*</m:warnings>', re.M | re.S)
+_errors_re = re.compile(
+    r'<m:errors>.*<m:errorcount>(?P<errorcount>[\d]+)\</m:errorcount>.*<m:errorlist>(?P<errors>.*)</m:errorlist>.*</m:errors>',
+    re.M | re.S)
+_warnings_re = re.compile(
+    r'<m:warnings>.*<m:warningcount>(?P<warningcount>[\d]+)</m:warningcount>.*<m:warninglist>(?P<warnings>.*)</m:warninglist>.*</m:warnings>',
+    re.M | re.S)
 
-_error_re = re.compile(r'<m:error>.*<m:line>(?P<line>[\d]+)</m:line>.*<m:col>(?P<col>[\d]+)</m:col>.*<m:message>(?P<message>.+)</m:message>.*</m:error>', re.M | re.S)
+_error_re = re.compile(
+    r'<m:error>.*<m:line>(?P<line>[\d]+)</m:line>.*<m:col>(?P<col>[\d]+)</m:col>.*<m:message>(?P<message>.+)</m:message>.*</m:error>',
+    re.M | re.S)
 
-_warning_re = re.compile(r'<m:warning>.*<m:line>(?P<line>[\d]+)</m:line>.*<m:col>(?P<col>[\d]+)</m:col>.*<m:message>(?P<message>.+)</m:message>.*</m:warning>', re.M | re.S)
+_warning_re = re.compile(
+    r'<m:warning>.*<m:line>(?P<line>[\d]+)</m:line>.*<m:col>(?P<col>[\d]+)</m:col>.*<m:message>(?P<message>.+)</m:message>.*</m:warning>',
+    re.M | re.S)
 
 
 def _parse_validator_soap(soap_output, rows):
@@ -127,15 +144,18 @@ def _parse_validator_soap(soap_output, rows):
     warnings = _warnings_re.search(soap_output)
     if errors:
         errors = _error_re.findall(errors.group('errors'))
-        errors = map(lambda error: (error[0], error[1], error[2], rows[int(error[0])-1]), errors)
+        errors = map(lambda error: (error[0], error[1], error[
+                     2], rows[int(error[0]) - 1]), errors)
     else:
         errors = []
     if warnings:
         warnings = _warning_re.findall(warnings.group('warnings'))
-        warnings = map(lambda warning: (warning[0], warning[1], warning[2], rows[int(warning[0])-1]), warnings)
+        warnings = map(lambda warning: (warning[0], warning[1], warning[
+                       2], rows[int(warning[0]) - 1]), warnings)
     else:
         warnings = []
     return (errors, warnings)
+
 
 def _post_multipart(host, selector, fields, files):
     """
@@ -153,6 +173,7 @@ def _post_multipart(host, selector, fields, files):
     h.send(body)
     return h
 
+
 def _encode_multipart_formdata(fields, files):
     """
     fields is a sequence of (name, value) elements for regular form fields.
@@ -169,7 +190,9 @@ def _encode_multipart_formdata(fields, files):
         L.append(value)
     for (key, filename, value) in files:
         L.append('--' + BOUNDARY)
-        L.append('Content-Disposition: form-data; name="%s"; filename="%s"' % (key, filename))
+        L.append(
+            'Content-Disposition: form-data; name="%s"; filename="%s"' %
+            (key, filename))
         L.append('Content-Type: %s' % _get_content_type(filename))
         L.append('')
         L.append(value)
@@ -179,6 +202,6 @@ def _encode_multipart_formdata(fields, files):
     content_type = 'multipart/form-data; boundary=%s' % BOUNDARY
     return content_type, body
 
+
 def _get_content_type(filename):
     return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
-

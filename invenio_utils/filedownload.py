@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2012 CERN.
+# Copyright (C) 2012, 2015 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -26,21 +26,21 @@ Main API usage:
 Raises InvenioFileDownloadError exception.
 """
 
-import urllib2
-import time
 import os
-import socket
-import urllib
-import tempfile
 import shutil
+import socket
 import sys
+import tempfile
+import time
+import urllib
+import urllib2
 
+from invenio.config import CFG_BIBUPLOAD_FFT_ALLOWED_LOCAL_PATHS, \
+    CFG_TMPSHAREDDIR
 from invenio_utils.url import make_invenio_opener
 
 URL_OPENER = make_invenio_opener('filedownloadutils')
 
-from invenio.config import (CFG_TMPSHAREDDIR,
-                            CFG_BIBUPLOAD_FFT_ALLOWED_LOCAL_PATHS)
 
 #: block size when performing I/O.
 CFG_FILEUTILS_BLOCK_SIZE = 1024 * 8
@@ -48,6 +48,7 @@ CFG_FILEUTILS_BLOCK_SIZE = 1024 * 8
 
 class InvenioFileDownloadError(Exception):
     """A generic download exception."""
+
     def __init__(self, msg, code=None):
         Exception.__init__(self, msg)
         self.code = code
@@ -171,7 +172,7 @@ def download_external_url(url, download_to_file, content_type=None,
                 time.sleep(retry_after)
                 retry_attempt += 1
                 continue
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             error_code = e.code
             error_str = str(e)
             retry_after = timeout
@@ -194,7 +195,7 @@ def download_external_url(url, download_to_file, content_type=None,
         except (urllib2.URLError,
                 socket.timeout,
                 socket.gaierror,
-                socket.error), e:
+                socket.error) as e:
             if verbose:
                 error_str = str(e)
                 msg = "socket error, retrying after %ss" % (timeout,)
@@ -233,7 +234,7 @@ def finalize_download(url, download_to_file, content_type, request):
                 if not block:
                     break
                 to_file.write(block)
-        except Exception, e:
+        except Exception as e:
             msg = "Error when downloading %s into %s: %s" % \
                   (url, download_to_file, e)
             raise InvenioFileDownloadError(msg)
@@ -284,7 +285,7 @@ def download_local_file(filename, download_to_file):
         else:
             msg = "%s is not in one of the allowed paths." % (path,)
             raise InvenioFileCopyError()
-    except Exception, e:
+    except Exception as e:
         msg = "Impossible to copy the local file '%s' to %s: %s" % \
               (filename, download_to_file, str(e))
         raise InvenioFileCopyError(msg)

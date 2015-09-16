@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2012, 2013 CERN.
+# Copyright (C) 2012, 2013, 2015 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -17,10 +17,12 @@
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-from invenio_utils.xmlDict import XmlDictConfig, ElementTree
 import urllib2
+
 from werkzeug.contrib.cache import RedisCache
+
 from invenio.ext.cache import cache
+from invenio_utils.xmlDict import ElementTree, XmlDictConfig
 
 
 class SherpaRomeoSearch(object):
@@ -85,7 +87,8 @@ class SherpaRomeoSearch(object):
                 return cached_journal['jtitle']
 
         cleanquery = query.replace(" ", "+")
-        url = "http://www.sherpa.ac.uk/romeo/api29.php?jtitle=" + cleanquery + "&qtype=" + query_type
+        url = "http://www.sherpa.ac.uk/romeo/api29.php?jtitle=" + \
+            cleanquery + "&qtype=" + query_type
         self.parser.parse_url(url)
         self.error = self.parser.error
         self.error_message = self.parser.error_message
@@ -116,7 +119,7 @@ class SherpaRomeoXMLParser(object):
 
     def parse_url(self, url):
         self.url = url
-        #example
+        # example
         #url = 'http://www.sherpa.ac.uk/romeo/api29.php?jtitle=Annals%20of%20Physics'
 
         found_journal = url.find("jtitle=")
@@ -148,8 +151,12 @@ class SherpaRomeoXMLParser(object):
             self.xml = XmlDictConfig(root)
             outcome = self.xml['header']['outcome']
             if outcome != 'failed' and outcome != 'notFound':
-                cache.set(self.search_type + ":" + self.query.lower(), self.xml,
-                        999999999999)
+                cache.set(
+                    self.search_type +
+                    ":" +
+                    self.query.lower(),
+                    self.xml,
+                    999999999999)
         else:
             self.xml = cached_xml
             #self.data = cached_xml
@@ -172,29 +179,39 @@ class SherpaRomeoXMLParser(object):
             return
 
         if self.xml['header']['outcome'] == 'singleJournal' \
-            or self.xml['header']['outcome'] == 'uniqueZetoc':
+                or self.xml['header']['outcome'] == 'uniqueZetoc':
             journal = self.xml['journals']['journal']
-            cache.set("journal:" + journal['jtitle'].lower(), journal, 999999999999)
+            cache.set(
+                "journal:" + journal['jtitle'].lower(), journal, 999999999999)
 
             if self.xml['header']['outcome'] != 'uniqueZetoc':
                 # if the publisher has been indexed by RoMEO
                 publisher = self.xml['publishers']['publisher']
 
                 # Associate a Journal with a Publisher key in cache
-                cache.set("journal-publisher:" + journal['jtitle'].lower(),
-                                  "publisher:" + publisher['name'].lower(), 999999999999)
+                cache.set(
+                    "journal-publisher:" +
+                    journal['jtitle'].lower(),
+                    "publisher:" +
+                    publisher['name'].lower(),
+                    999999999999)
         elif self.xml['journals'] is not None:
             for journal in self.xml['journals']['journal']:
-                cache.set("journal:" + journal['jtitle'].lower(), journal, 999999999999)
+                cache.set(
+                    "journal:" +
+                    journal['jtitle'].lower(),
+                    journal,
+                    999999999999)
 
         if self.xml['header']['numhits'] == '1' \
-            and self.xml['header']['outcome'] != 'uniqueZetoc':
+                and self.xml['header']['outcome'] != 'uniqueZetoc':
             publisher = self.xml['publishers']['publisher']
-            cache.set("publisher:" + publisher['name'].lower(), publisher, 999999999999)
+            cache.set("publisher:" +
+                      publisher['name'].lower(), publisher, 999999999999)
         elif self.xml['publishers'] is not None:
             for publisher in self.xml['publishers']['publisher']:
                 cache.set("publisher:" + publisher['name'].lower(), publisher,
-                        None)
+                          None)
 
     def set_single_item(self, journal=None, publisher=None):
         """
@@ -215,8 +232,12 @@ class SherpaRomeoXMLParser(object):
             if publisher is not None:
                 # Associate a Journal with a Publisher key in cache
                 self.xml['header']['outcome'] = 'singleJournal'
-                cache.set("journal-publisher:" + journal['jtitle'].lower(),
-                                  "publisher:" + publisher['name'].lower(), 999999999999)
+                cache.set(
+                    "journal-publisher:" +
+                    journal['jtitle'].lower(),
+                    "publisher:" +
+                    publisher['name'].lower(),
+                    999999999999)
         elif publisher is not None:
             self.xml['header']['outcome'] = 'publisherFound'
             self.xml['header']['numhits'] = '1'
@@ -243,8 +264,8 @@ class SherpaRomeoXMLParser(object):
             return []
 
         if self.xml['header']['outcome'] == 'singleJournal' \
-         or self.xml['header']['outcome'] == 'uniqueZetoc' \
-         or (self.single_item and self.xml['journals']['journal'] is not None):
+                or self.xml['header']['outcome'] == 'uniqueZetoc' \
+                or (self.single_item and self.xml['journals']['journal'] is not None):
             if attribute is None:
                 return [self.xml['journals']['journal']]
             elif self.xml['journals']['journal'][attribute] is not None:
@@ -329,7 +350,7 @@ class SherpaRomeoXMLParser(object):
             return None
 
         if self.xml['header']['outcome'] == 'singleJournal'\
-            or self.xml['header']['outcome'] == 'uniqueZetoc':
+                or self.xml['header']['outcome'] == 'uniqueZetoc':
             return self.xml['journals']['journal']['issn']
         else:
             return None
@@ -338,4 +359,3 @@ class SherpaRomeoXMLParser(object):
                 issns[j['jtitle']] = j['issn']
 
             return issns
-

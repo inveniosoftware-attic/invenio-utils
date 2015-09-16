@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2012, 2013 CERN.
+# Copyright (C) 2012, 2013, 2015 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -20,6 +20,7 @@
 import subprocess
 from json import json
 
+
 class OrcidSearch:
 
     def search_authors(self, query):
@@ -28,10 +29,10 @@ class OrcidSearch:
         FIXME: Don't create a process to do this!
         """
         p = subprocess.Popen("curl -H 'Accept: application/orcid+json' \
-                             'http://pub.sandbox-1.orcid.org/search/orcid-bio?q=" + \
-                             query + "&start=0&rows=10'", \
-                             shell=True, \
-                             stdout=subprocess.PIPE, \
+                             'http://pub.sandbox-1.orcid.org/search/orcid-bio?q=" +
+                             query + "&start=0&rows=10'",
+                             shell=True,
+                             stdout=subprocess.PIPE,
                              stderr=subprocess.STDOUT)
         jsonResults = ""
         for line in p.stdout.readlines():
@@ -42,9 +43,12 @@ class OrcidSearch:
     def get_authors_names(self):
         author_names = []
         try:
-            for author in self.authorsDict['orcid-search-results']['orcid-search-result']:
-                given_name = author['orcid-profile']['orcid-bio']['personal-details']['given-names']['value']
-                family_name = author['orcid-profile']['orcid-bio']['personal-details']['family-name']['value']
+            for author in self.authorsDict[
+                    'orcid-search-results']['orcid-search-result']:
+                given_name = author[
+                    'orcid-profile']['orcid-bio']['personal-details']['given-names']['value']
+                family_name = author[
+                    'orcid-profile']['orcid-bio']['personal-details']['family-name']['value']
                 name = family_name + " " + given_name
                 author_names.append(name)
             return author_names

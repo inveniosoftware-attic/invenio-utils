@@ -27,12 +27,10 @@ are taken from `flask-admin` extension.
 :source: https://raw.github.com/wilsaj/flask-admin/master/flask_admin/wtforms.py
 """
 import datetime
-
 import time
 
 from flask import current_app, session
 from flask_wtf import Form
-
 from wtforms.compat import text_type
 from wtforms.ext.csrf.session import SessionSecureForm
 from wtforms.fields import Field, FileField, HiddenField, StringField

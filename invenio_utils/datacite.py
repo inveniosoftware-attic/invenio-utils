@@ -26,7 +26,6 @@ import urllib2
 
 from invenio_utils.xmlDict import ElementTree, XmlDictConfig
 
-
 __all__ = (
     'DataciteMetadata',
 )

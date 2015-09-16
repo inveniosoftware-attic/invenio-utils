@@ -20,12 +20,12 @@
 """Utilities for interaction with Git repositories"""
 
 import errno
-
-from subprocess import check_call as call
-from invenio_base.globals import cfg
 from os import chdir
-from tempfile import mkdtemp
 from shutil import rmtree
+from subprocess import check_call as call
+from tempfile import mkdtemp
+
+from invenio_base.globals import cfg
 
 
 def git_exists():

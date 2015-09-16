@@ -20,13 +20,13 @@
 """Utilities for interaction with SVN repositories"""
 
 import errno
-
-from os import chdir
-from subprocess import check_call as call
-from invenio_base.globals import cfg
 import tarfile
-from tempfile import mkdtemp
+from os import chdir
 from shutil import rmtree
+from subprocess import check_call as call
+from tempfile import mkdtemp
+
+from invenio_base.globals import cfg
 
 
 def svn_exists():

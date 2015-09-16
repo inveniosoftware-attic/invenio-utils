@@ -19,8 +19,8 @@
 """Invenio special data structures."""
 
 import re
-
 from collections import MutableMapping
+
 from six import iteritems
 
 
@@ -418,4 +418,4 @@ class DotableDict(dict):
 def flatten_multidict(multidict):
     """Return flattened dictionary from ``MultiDict``."""
     return dict([(key, value if len(value) > 1 else value[0])
-                for (key, value) in multidict.iterlists()])
+                 for (key, value) in multidict.iterlists()])

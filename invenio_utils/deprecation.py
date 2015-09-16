@@ -73,7 +73,6 @@ once Invenio v2.1 has been released.
 """
 
 import warnings
-
 from functools import wraps
 
 

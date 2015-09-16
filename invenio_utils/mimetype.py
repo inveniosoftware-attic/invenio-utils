@@ -26,11 +26,13 @@ Usage example:
 """
 
 import re
-from invenio_base.globals import cfg
 from mimetypes import MimeTypes
-from six import iteritems
-from werkzeug import cached_property, LocalProxy
 from thread import get_ident
+
+from six import iteritems
+from werkzeug import LocalProxy, cached_property
+
+from invenio_base.globals import cfg
 
 try:
     import magic
@@ -53,11 +55,18 @@ if CFG_HAS_MAGIC == 1:
         thread_id = get_ident()
         if thread_id not in _magic_cookies:
             _magic_cookies[thread_id] = {
-                magic.MAGIC_NONE: magic.open(magic.MAGIC_NONE),
-                magic.MAGIC_COMPRESS: magic.open(magic.MAGIC_COMPRESS),
-                magic.MAGIC_MIME: magic.open(magic.MAGIC_MIME),
-                magic.MAGIC_COMPRESS + magic.MAGIC_MIME: magic.open(magic.MAGIC_COMPRESS + magic.MAGIC_MIME),
-                magic.MAGIC_MIME_TYPE: magic.open(magic.MAGIC_MIME_TYPE),
+                magic.MAGIC_NONE: magic.open(
+                    magic.MAGIC_NONE),
+                magic.MAGIC_COMPRESS: magic.open(
+                    magic.MAGIC_COMPRESS),
+                magic.MAGIC_MIME: magic.open(
+                    magic.MAGIC_MIME),
+                magic.MAGIC_COMPRESS +
+                magic.MAGIC_MIME: magic.open(
+                    magic.MAGIC_COMPRESS +
+                    magic.MAGIC_MIME),
+                magic.MAGIC_MIME_TYPE: magic.open(
+                    magic.MAGIC_MIME_TYPE),
             }
             for key in _magic_cookies[thread_id].keys():
                 _magic_cookies[thread_id][key].load()
@@ -66,10 +75,12 @@ elif CFG_HAS_MAGIC == 2:
     def _magic_wrapper(local_path, mime=True, mime_encoding=False):
         thread_id = get_ident()
         if (thread_id, mime, mime_encoding) not in _magic_cookies:
-            magic_object = _magic_cookies[thread_id, mime, mime_encoding] = magic.Magic(mime=mime, mime_encoding=mime_encoding)
+            magic_object = _magic_cookies[
+                thread_id, mime, mime_encoding] = magic.Magic(
+                mime=mime, mime_encoding=mime_encoding)
         else:
             magic_object = _magic_cookies[thread_id, mime, mime_encoding]
-        return magic_object.from_file(local_path) # pylint: disable=E1103
+        return magic_object.from_file(local_path)  # pylint: disable=E1103
 
 
 class LazyMimeCache(object):
@@ -80,11 +91,12 @@ class LazyMimeCache(object):
         Returns extended MimeTypes.
         """
         _mimes = MimeTypes(strict=False)
-        _mimes.suffix_map.update({'.tbz2' : '.tar.bz2'})
-        _mimes.encodings_map.update({'.bz2' : 'bzip2'})
+        _mimes.suffix_map.update({'.tbz2': '.tar.bz2'})
+        _mimes.encodings_map.update({'.bz2': 'bzip2'})
 
         if cfg['CFG_BIBDOCFILE_ADDITIONAL_KNOWN_MIMETYPES']:
-            for key, value in iteritems(cfg['CFG_BIBDOCFILE_ADDITIONAL_KNOWN_MIMETYPES']):
+            for key, value in iteritems(
+                    cfg['CFG_BIBDOCFILE_ADDITIONAL_KNOWN_MIMETYPES']):
                 _mimes.add_type(key, value)
                 del key, value
 
@@ -99,9 +111,9 @@ class LazyMimeCache(object):
         @rtype: regular expression object
         """
         _tmp_extensions = self.mimes.encodings_map.keys() + \
-                    self.mimes.suffix_map.keys() + \
-                    self.mimes.types_map[1].keys() + \
-                    cfg['CFG_BIBDOCFILE_ADDITIONAL_KNOWN_FILE_EXTENSIONS']
+            self.mimes.suffix_map.keys() + \
+            self.mimes.types_map[1].keys() + \
+            cfg['CFG_BIBDOCFILE_ADDITIONAL_KNOWN_FILE_EXTENSIONS']
         extensions = []
         for ext in _tmp_extensions:
             if ext.startswith('.'):
@@ -127,7 +139,11 @@ _extensions = LocalProxy(lambda: _mime_cache.extensions)
 # Use only functions bellow in your code:
 
 
-def file_strip_ext(afile, skip_version=False, only_known_extensions=False, allow_subformat=True):
+def file_strip_ext(
+        afile,
+        skip_version=False,
+        only_known_extensions=False,
+        allow_subformat=True):
     """
     Strip in the best way the extension from a filename.
 
@@ -163,9 +179,9 @@ def file_strip_ext(afile, skip_version=False, only_known_extensions=False, allow
     """
     import os
     afile = afile.split(';')
-    if len(afile)>1 and allow_subformat and not afile[-1].isdigit():
+    if len(afile) > 1 and allow_subformat and not afile[-1].isdigit():
         afile = afile[0:-1]
-    if len(afile)>1 and skip_version and afile[-1].isdigit():
+    if len(afile) > 1 and skip_version and afile[-1].isdigit():
         afile = afile[0:-1]
     afile = ';'.join(afile)
     nextfile = _extensions.sub('', afile)
@@ -175,6 +191,7 @@ def file_strip_ext(afile, skip_version=False, only_known_extensions=False, allow
         afile = nextfile
         nextfile = _extensions.sub('', afile)
     return nextfile
+
 
 def guess_mimetype_and_encoding(afile):
     """
@@ -199,7 +216,7 @@ def guess_extension(amimetype, normalize=False):
     """
     ext = _mimes.guess_extension(amimetype)
     if ext and normalize:
-        ## Normalize some common magic mis-interpreation
+        # Normalize some common magic mis-interpreation
         ext = {'.asc': '.txt', '.obj': '.bin'}.get(ext, ext)
         from invenio.legacy.bibdocfile.api_normalizer import normalize_format
         return normalize_format(ext)
@@ -225,8 +242,8 @@ def get_magic_guesses(fullpath):
     elif CFG_HAS_MAGIC == 2:
         magic_result = []
         for key in ({'mime': False, 'mime_encoding': False},
-                {'mime': True, 'mime_encoding': False},
-                {'mime': False, 'mime_encoding': True}):
+                    {'mime': True, 'mime_encoding': False},
+                    {'mime': False, 'mime_encoding': True}):
             magic_result.append(_magic_wrapper(fullpath, **key))
         return tuple(magic_result)
 
@@ -237,9 +254,9 @@ def guess_extension_from_path(local_path):
             magic_cookie = _get_magic_cookies()[magic.MAGIC_MIME_TYPE]
             mimetype = magic_cookie.file(local_path)
         elif CFG_HAS_MAGIC == 2:
-            mimetype = _magic_wrapper(local_path, mime=True, mime_encoding=False)
+            mimetype = _magic_wrapper(
+                local_path, mime=True, mime_encoding=False)
         if CFG_HAS_MAGIC:
             return guess_extension(mimetype, normalize=True)
     except Exception:
         pass
-

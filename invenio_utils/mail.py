@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # This file is part of Invenio.
-# Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011 CERN.
+# Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2015 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -22,8 +22,9 @@
 __revision__ = "$Id$"
 
 import cgi
-from .html import HTMLWasher
 from HTMLParser import HTMLParseError
+
+from .html import HTMLWasher
 
 
 def email_quoted_txt2html(text,
@@ -109,23 +110,23 @@ def email_quoted_txt2html(text,
         if indent_block:
             if (new_nb_indent > nb_indent):
                 for dummy in range(nb_indent, new_nb_indent):
-                    final_body += tabs_before*"\t" + indent_html[0] + "\n"
+                    final_body += tabs_before * "\t" + indent_html[0] + "\n"
                     tabs_before += 1
             elif (new_nb_indent < nb_indent):
                 for dummy in range(new_nb_indent, nb_indent):
                     tabs_before -= 1
-                    final_body += (tabs_before)*"\t" + indent_html[1] + "\n"
+                    final_body += (tabs_before) * "\t" + indent_html[1] + "\n"
             else:
-                final_body += (tabs_before)*"\t"
+                final_body += (tabs_before) * "\t"
         else:
-            final_body += tabs_before*"\t" + new_nb_indent * indent_html[0]
+            final_body += tabs_before * "\t" + new_nb_indent * indent_html[0]
         try:
             line = washer.wash(line)
         except HTMLParseError:
             # Line contained something like "foo<bar"
             line = cgi.escape(line)
         if indent_block:
-            final_body += tabs_before*"\t"
+            final_body += tabs_before * "\t"
         final_body += line
         if not indent_block:
             final_body += new_nb_indent * indent_html[1]
@@ -134,7 +135,7 @@ def email_quoted_txt2html(text,
     if indent_block:
         for dummy in range(0, nb_indent):
             tabs_before -= 1
-            final_body += (tabs_before)*"\t" + "</div>\n"
+            final_body += (tabs_before) * "\t" + "</div>\n"
     return final_body
 
 
@@ -209,6 +210,7 @@ def escape_email_quoted_text(text, indent_txt='>>', linebreak_txt='\n'):
                 line = line[len(indent_txt):]
             else:
                 break
-        output += (nb_indent * indent_txt) + washer.wash(line, render_unallowed_tags=True) + linebreak_txt
+        output += (nb_indent * indent_txt) + washer.wash(line,
+                                                         render_unallowed_tags=True) + linebreak_txt
         nb_indent = 0
     return output[:-1]

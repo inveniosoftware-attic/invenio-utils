@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # This file is part of Invenio.
-# Copyright (C) 2009, 2010, 2011, 2013 CERN.
+# Copyright (C) 2009, 2010, 2011, 2013, 2015 CERN.
 #
 # Invenio is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -21,7 +21,7 @@ import inspect
 
 from six import iteritems
 
-from .errors import AutodiscoveryError, AutodiscoveryCheckerError
+from .errors import AutodiscoveryCheckerError, AutodiscoveryError
 from .helpers import get_callable_signature_as_string
 
 
@@ -41,14 +41,14 @@ def check_signature(object_name, reference_object, other_object):
     """
     try:
         if inspect.isclass(reference_object):
-            ## if the reference_object is a class
+            # if the reference_object is a class
             if inspect.isclass(other_object):
-                ## if the other_object is a class
+                # if the other_object is a class
                 if issubclass(other_object, reference_object):
-                    ## if the other_object is derived from the reference we
-                    ## should check for all the method in the former that
-                    ## exists in the the latter, wethever they recursively have
-                    ## the same signature.
+                    # if the other_object is derived from the reference we
+                    # should check for all the method in the former that
+                    # exists in the the latter, wethever they recursively have
+                    # the same signature.
                     reference_object_map = dict(
                         inspect.getmembers(reference_object,
                                            inspect.isroutine))
@@ -61,10 +61,10 @@ def check_signature(object_name, reference_object, other_object):
                                 reference_object_map[other_method_name],
                                 other_method_code)
                 else:
-                    ## if the other_object is not derived from the
-                    ## reference_object then all the method declared in the
-                    ## latter should exist in the former and they should
-                    ## recursively have the same signature.
+                    # if the other_object is not derived from the
+                    # reference_object then all the method declared in the
+                    # latter should exist in the former and they should
+                    # recursively have the same signature.
                     other_object_map = dict(
                         inspect.getmembers(other_object, inspect.isroutine))
                     for reference_method_name, reference_method_code in \
@@ -82,61 +82,62 @@ def check_signature(object_name, reference_object, other_object):
                                 ' class is not an anchestor of the other' %
                                 reference_method_name)
             else:
-                ## We are comparing apples and oranges!
+                # We are comparing apples and oranges!
                 raise AutodiscoveryCheckerError(
                     "%s (the reference object)"
                     " is a class while %s (the other object) is not a class" %
                     (reference_object, other_object))
         elif inspect.isroutine(reference_object):
-            ## if the reference_object is a function
+            # if the reference_object is a function
             if inspect.isroutine(other_object):
-                ## if the other_object is a function we will compare the
-                ## reference_object and other_object function signautre i.e.
-                ## their parameters.
+                # if the other_object is a function we will compare the
+                # reference_object and other_object function signautre i.e.
+                # their parameters.
                 reference_args, reference_varargs, reference_varkw, \
                     reference_defaults = inspect.getargspec(reference_object)
                 other_args, other_varargs, other_varkw, \
                     other_defaults = inspect.getargspec(other_object)
-                ## We normalize the reference_defaults to be a list
+                # We normalize the reference_defaults to be a list
                 if reference_defaults is not None:
                     reference_defaults = list(reference_defaults)
                 else:
                     reference_defaults = []
 
-                ## We normalize the other_defaults to be a list
+                # We normalize the other_defaults to be a list
                 if other_defaults is not None:
                     other_defaults = list(other_defaults)
                 else:
                     other_defaults = []
 
-                ## Check for presence of missing parameters in other function
+                # Check for presence of missing parameters in other function
                 if not (other_varargs or other_varkw):
                     for reference_arg in reference_args:
                         if reference_arg not in other_args:
                             raise AutodiscoveryCheckerError(
                                 'Argument "%s"'
                                 ' in reference function %s does not exist in'
-                                ' the other function %s' % (reference_arg,
-                                reference_object, other_object))
+                                ' the other function %s' %
+                                (reference_arg, reference_object, other_object)
+                            )
 
-                ## Check for presence of additional parameters in other
-                ## function
+                # Check for presence of additional parameters in other
+                # function
                 if not (reference_varargs or reference_varkw):
                     for other_arg in other_args:
                         if other_arg not in reference_args:
                             raise AutodiscoveryCheckerError(
                                 'Argument "%s"'
                                 ' in other function %s does not exist in the'
-                                ' reference function %s' % (other_arg,
-                                other_object, reference_object))
+                                ' reference function %s' %
+                                (other_arg, other_object, reference_object))
 
-                ## Check sorting of arguments
+                # Check sorting of arguments
                 for reference_arg, other_arg in map(
                         None, reference_args, other_args):
                     if not((reference_arg == other_arg) or
-                        (reference_arg is None and
+                           (reference_arg is None and
                             (reference_varargs or reference_varkw)) or
-                        (other_arg is None and
+                           (other_arg is None and
                             (other_args or other_varargs))):
                         raise AutodiscoveryCheckerError(
                             'Argument "%s" in'
@@ -145,15 +146,15 @@ def check_signature(object_name, reference_object, other_object):
                             ' the order of arguments is not respected' %
                             (other_arg, reference_arg))
 
-                if len(reference_defaults) != len(other_defaults) and \
-                        not (reference_args or reference_varargs
-                        or other_args or other_varargs):
+                if len(reference_defaults) != len(other_defaults) and not (
+                        reference_args or reference_varargs or
+                        other_args or other_varargs):
                     raise AutodiscoveryCheckerError(
                         "Default parameters in"
                         " the other function are not corresponding to the"
                         " default of parameters of the reference function")
             else:
-                ## We are comparing apples and oranges!
+                # We are comparing apples and oranges!
                 raise AutodiscoveryCheckerError(
                     '%s (the reference object)'
                     ' is a function while %s (the other object) is not a'
@@ -163,7 +164,7 @@ def check_signature(object_name, reference_object, other_object):
             sourcefile = inspect.getsourcefile(other_object)
             sourceline = inspect.getsourcelines(other_object)[1]
         except IOError:
-            ## other_object is not loaded from a real file
+            # other_object is not loaded from a real file
             sourcefile = 'N/A'
             sourceline = 'N/A'
         raise AutodiscoveryCheckerError(
@@ -305,13 +306,15 @@ def create_enhanced_plugin_builder(compulsory_objects=None,
                     iteritems(compulsory_objects):
                 the_object = getattr(the_plugin, object_name, None)
                 if the_object is None:
-                    raise AutodiscoveryError('Plugin "%s" does not '
-                        'contain compulsory object "%s"' % (plugin_name,
-                        object_name))
+                    raise AutodiscoveryError(
+                        'Plugin "%s" does not '
+                        'contain compulsory object "%s"' %
+                        (plugin_name, object_name))
                 try:
                     check_signature(object_name, the_object, object_signature)
                 except AutodiscoveryError as err:
-                    raise AutodiscoveryError('Plugin "%s" contains '
+                    raise AutodiscoveryError(
+                        'Plugin "%s" contains '
                         'object "%s" with a wrong signature: %s' %
                         (plugin_name, object_name, err))
                 plugin[object_name] = the_object
@@ -326,7 +329,8 @@ def create_enhanced_plugin_builder(compulsory_objects=None,
                             the_object,
                             object_signature)
                     except AutodiscoveryError as err:
-                        raise AutodiscoveryError('Plugin "%s" '
+                        raise AutodiscoveryError(
+                            'Plugin "%s" '
                             'contains object "%s" with a wrong signature: %s' %
                             (plugin_name, object_name, err))
                     plugin[object_name] = the_object
@@ -340,8 +344,10 @@ def create_enhanced_plugin_builder(compulsory_objects=None,
             try:
                 the_other_data = wash_urlargd(the_other_data, other_data)
             except Exception as err:
-                raise AutodiscoveryError('Plugin "%s" contains other '
-                    'data with problems: %s' % (plugin_name, err))
+                raise AutodiscoveryError(
+                    'Plugin "%s" contains other '
+                    'data with problems: %s' %
+                    (plugin_name, err))
 
             plugin.update(the_other_data)
         return plugin
