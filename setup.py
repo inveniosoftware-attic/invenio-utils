@@ -36,18 +36,23 @@ history = open('CHANGES.rst').read()
 requirements = [
     'Flask>=0.10.1',
     'six>=1.7.2',
-    'Invenio>=2.0.3',
+    'invenio-base>=0.2.1',
 ]
 
 test_requirements = [
-    'pytest>=2.7.0',
+    'Flask-Testing>=0.4.1',
+    'coverage>=3.7.1',
+    'httpretty>=0.8.10',
+    'mock>=1.0.0',
     'pytest-cov>=1.8.0',
     'pytest-pep8>=1.0.6',
-    'coverage>=3.7.1',
+    'pytest>=2.7.0',
+    'unittest2>=0.5',
 ]
 
 
 class PyTest(TestCommand):
+
     """PyTest Test."""
 
     user_options = [('pytest-args=', 'a', "Arguments to pass to py.test")]
