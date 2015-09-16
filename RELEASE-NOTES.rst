@@ -2,7 +2,7 @@
  Invenio-Utils v0.1.0
 ======================
 
-Invenio-Utils v0.1.0 was released on TBD, 2015.
+Invenio-Utils v0.1.0 was released on September 16, 2015.
 
 About
 -----
