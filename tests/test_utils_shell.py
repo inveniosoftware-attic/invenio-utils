@@ -17,20 +17,16 @@
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-from __future__ import print_function
-
 """Unit tests for shellutils library."""
 
-__revision__ = "$Id$"
+from __future__ import print_function
 
-
-import time
 import os
+import time
 
-
-from invenio_utils.shell import escape_shell_arg, run_shell_command, \
-    run_process_with_timeout, Timeout, split_cli_ids_arg
-from invenio.testsuite import make_test_suite, run_test_suite, InvenioTestCase
+from invenio_testing import InvenioTestCase
+from invenio_utils.shell import Timeout, escape_shell_arg, \
+    run_process_with_timeout, run_shell_command, split_cli_ids_arg
 
 
 class EscapeShellArgTest(InvenioTestCase):
@@ -199,12 +195,3 @@ class SplitIdsTest(InvenioTestCase):
 
     def test_complex(self):
         self.assertEqual(split_cli_ids_arg("1-1,7,10-11,4"), set([1, 4, 7, 10, 11]))
-
-
-TEST_SUITE = make_test_suite(EscapeShellArgTest,
-                             RunShellCommandTest,
-                             RunProcessWithTimeoutTest,
-                             SplitIdsTest)
-
-if __name__ == "__main__":
-    run_test_suite(TEST_SUITE)

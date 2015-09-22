@@ -22,10 +22,12 @@ Test unit for the miscutil/datastructures module.
 """
 
 from operator import delitem, setitem
+
 from werkzeug.datastructures import MultiDict
 
-from invenio_utils.datastructures import LazyDict, LaziestDict, SmartDict, DotableDict, flatten_multidict
-from invenio.testsuite import make_test_suite, run_test_suite, InvenioTestCase
+from invenio_testing import InvenioTestCase
+from invenio_utils.datastructures import DotableDict, LaziestDict, LazyDict, \
+    SmartDict, flatten_multidict
 
 
 class CallCounter(object):
@@ -397,9 +399,3 @@ class TestFlattenMultict(InvenioTestCase):
         d2 = flatten_multidict(d)
 
         self.assertEqual(d2, {'a': 3, 'b': {'c': 5}})
-
-TEST_SUITE = make_test_suite(TestLazyDictionaries, TestSmartDict,
-                             TestDotableDict)
-
-if __name__ == "__main__":
-    run_test_suite(TEST_SUITE)

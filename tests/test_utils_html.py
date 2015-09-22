@@ -19,14 +19,11 @@
 
 """Unit tests for htmlutils library."""
 
-__revision__ = "$Id$"
-
-from invenio_utils.html import HTMLWasher, nmtoken_from_string, \
-     remove_html_markup, create_html_select, \
-     CFG_TIDY_INSTALLED, \
-     CFG_BEAUTIFULSOUP_INSTALLED, tidy_html, \
-     escape_javascript_string
-from invenio.testsuite import make_test_suite, run_test_suite, InvenioTestCase
+from invenio_testing import InvenioTestCase
+from invenio_utils.html import CFG_BEAUTIFULSOUP_INSTALLED, \
+    CFG_TIDY_INSTALLED, HTMLWasher, create_html_select, \
+    escape_javascript_string, nmtoken_from_string, remove_html_markup, \
+    tidy_html
 
 
 class XSSEscapingTest(InvenioTestCase):
@@ -357,16 +354,3 @@ class HTMLCreation(InvenioTestCase):
         """htmlutils - create HTML <select> list """
         self.assertEqual(create_html_select(["foo", "bar"], selected="bar", name="baz"),
                          '<select name="baz"><option value="foo">foo</option>\n<option selected="selected" value="bar">bar</option></select>')
-
-
-TEST_SUITE = make_test_suite(XSSEscapingTest,
-                             CharactersEscapingTest,
-                             HTMLWashingTest,
-                             HTMLMarkupRemovalTest,
-                             HTMLTidyingTest,
-                             HTMLAutomaticLinksTransformation,
-                             HTMLCreation,
-                             JavascriptCharactersEscapingTest)
-
-if __name__ == "__main__":
-    run_test_suite(TEST_SUITE)

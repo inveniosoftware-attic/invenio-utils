@@ -21,15 +21,16 @@
 
 __revision__ = "$Id$"
 
-from invenio.testsuite import make_test_suite, run_test_suite, InvenioTestCase
-from invenio_base.globals import cfg
-from invenio_utils.vcs.svn import harvest_repo
-from invenio_utils.shell import which
-from tempfile import mkdtemp
-from subprocess import call
-from shutil import rmtree
-from os import chdir, path
 import tarfile
+from os import chdir, path
+from shutil import rmtree
+from subprocess import call
+from tempfile import mkdtemp
+
+from invenio_base.globals import cfg
+from invenio_testing import InvenioTestCase
+from invenio_utils.shell import which
+from invenio_utils.vcs.svn import harvest_repo
 
 
 class SVNHarvestTest(InvenioTestCase):
@@ -94,8 +95,3 @@ class SVNHarvestTest(InvenioTestCase):
         fs_list = tarfile.open(self.archive_path).getnames()
         self.assertTrue('test.txt' in fs_list)
         self.assertTrue('test2.txt' in fs_list)
-
-TEST_SUITE = make_test_suite(SVNHarvestTest)
-
-if __name__ == "__main__":
-    run_test_suite(TEST_SUITE)

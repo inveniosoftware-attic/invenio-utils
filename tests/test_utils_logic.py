@@ -19,8 +19,8 @@
 
 """Unit tests for logic library."""
 
-from invenio_utils.logic import expr, Expr, to_cnf, pl_true
-from invenio.testsuite import make_test_suite, run_test_suite, InvenioTestCase
+from invenio_testing import InvenioTestCase
+from invenio_utils.logic import Expr, expr, pl_true, to_cnf
 
 
 class exprExprOpsTest(InvenioTestCase):
@@ -73,9 +73,3 @@ class prop_logicTest(InvenioTestCase):
         """logicutils - False thing is evaluated as such"""
         self.assertEqual(pl_true(self.P, {self.P: False}),
                          False)
-
-
-TEST_SUITE = make_test_suite(exprExprOpsTest, toCNFTest, prop_logicTest)
-
-if __name__ == "__main__":
-    run_test_suite(TEST_SUITE)

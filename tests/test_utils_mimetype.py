@@ -21,8 +21,8 @@
 Test unit for the invenio_utils.mimetype module.
 """
 
+from invenio_testing import InvenioTestCase
 from invenio_utils.mimetype import file_strip_ext
-from invenio.testsuite import make_test_suite, run_test_suite, InvenioTestCase
 
 
 class TestMimeTypeUtils(InvenioTestCase):
@@ -57,10 +57,3 @@ class TestMimeTypeUtils(InvenioTestCase):
         self.assertEqual(file_strip_ext("foo.buz;1;icon", only_known_extensions=True), 'foo.buz;1')
         self.assertEqual(file_strip_ext("foo.buz;1;icon", skip_version=True), 'foo')
         self.assertEqual(file_strip_ext("foo.buz;1;icon", skip_version=True, only_known_extensions=True), 'foo.buz')
-
-
-
-TEST_SUITE = make_test_suite(TestMimeTypeUtils, )
-
-if __name__ == "__main__":
-    run_test_suite(TEST_SUITE)

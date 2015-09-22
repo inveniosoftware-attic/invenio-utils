@@ -21,8 +21,8 @@
 Test unit for the miscutil/paginationutils module.
 """
 
+from invenio_testing import InvenioTestCase
 from invenio_utils.pagination import Pagination
-from invenio.testsuite import make_test_suite, run_test_suite, InvenioTestCase
 
 
 class TestPaginationUtils(InvenioTestCase):
@@ -57,9 +57,3 @@ class TestPaginationUtils(InvenioTestCase):
         self.assertTrue(pagination.has_next)
         self.assertEqual(list(pagination.iter_pages()),
                          [1, None, 4, 5, 6, 7, None, 10])
-
-
-TEST_SUITE = make_test_suite(TestPaginationUtils,)
-
-if __name__ == "__main__":
-    run_test_suite(TEST_SUITE)

@@ -295,7 +295,7 @@ def create_html_link(urlbase, urlargd, link_label, linkattrd=None,
                      escape_urlargd=True, escape_linkattrd=True,
                      urlhash=None):
     """Creates a W3C compliant link.
-    @param urlbase: base url (e.g. invenio.config.CFG_SITE_URL/search)
+    @param urlbase: base url (e.g. config.CFG_SITE_URL/search)
     @param urlargd: dictionary of parameters. (e.g. p={'recid':3, 'of'='hb'})
     @param link_label: text displayed in a browser (has to be already escaped)
     @param linkattrd: dictionary of attributes (e.g. a={'class': 'img'})
@@ -521,7 +521,7 @@ def get_canonical_and_alternates_urls(
 def create_url(urlbase, urlargd, escape_urlargd=True, urlhash=None):
     """Creates a W3C compliant URL. Output will look like this:
     'urlbase?param1=value1&amp;param2=value2'
-    @param urlbase: base url (e.g. invenio.config.CFG_SITE_URL/search)
+    @param urlbase: base url (e.g. config.CFG_SITE_URL/search)
     @param urlargd: dictionary of parameters. (e.g. p={'recid':3, 'of'='hb'}
     @param escape_urlargd: boolean indicating if the function should escape
                            arguments (e.g. < becomes &lt; or " becomes &quot;)
@@ -746,7 +746,7 @@ def create_AWS_request_url(base_url, argd, _amazon_secret_access_key,
                 raise Exception(
                     "Module hashlib not installed. Please install it.")
             except:
-                from invenio.ext.logging import register_exception
+                from invenio_ext.logging import register_exception
                 register_exception(
                     stream='warning',
                     alert_admin=True,
@@ -854,7 +854,7 @@ def create_Indico_request_url(
         try:
             raise Exception("Module hashlib not installed. Please install it.")
         except:
-            from invenio.ext.logging import register_exception
+            from invenio_ext.logging import register_exception
             register_exception(stream='warning', alert_admin=True,
                                subject='Cannot create AWS signature')
     if not items:

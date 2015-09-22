@@ -21,8 +21,8 @@
 Unit test for the hash functions.
 """
 
+from invenio_testing import InvenioTestCase
 from invenio_utils.hash import md5, sha1
-from invenio.testsuite import make_test_suite, run_test_suite, InvenioTestCase
 
 
 class TestHashUtils(InvenioTestCase):
@@ -40,8 +40,3 @@ class TestHashUtils(InvenioTestCase):
                          'da39a3ee5e6b4b0d3255bfef95601890afd80709')
         self.assertEqual(sha1('test').hexdigest(),
                          'a94a8fe5ccb19ba61c4c0873d391e987982fbbd3')
-
-TEST_SUITE = make_test_suite(TestHashUtils, )
-
-if __name__ == "__main__":
-    run_test_suite(TEST_SUITE)

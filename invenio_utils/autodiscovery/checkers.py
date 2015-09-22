@@ -281,7 +281,7 @@ def create_enhanced_plugin_builder(compulsory_objects=None,
     :type optional_objects: dict
     :param other_data: map of other simple data that can be loaded from
         the plugin. The map has the same format of the C{content}
-        parameter of L{invenio.ext.legacy.handler.wash_urlargd}.
+        parameter of L{invenio_ext.legacy.handler.wash_urlargd}.
     :type other_data: dict
     :return: a I{plugin_builder} function that can be used with the
         map function. Such function will build the plugin
@@ -289,7 +289,7 @@ def create_enhanced_plugin_builder(compulsory_objects=None,
         the three maps provided as parameters and the corresponding value
         is the expected class or callable or simple data.
     """
-    from invenio.ext.legacy.handler import wash_urlargd
+    from invenio_ext.legacy.handler import wash_urlargd
 
     def plugin_builder(the_plugin):
         """

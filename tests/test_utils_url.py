@@ -22,8 +22,9 @@
 __revision__ = "$Id$"
 
 from cgi import parse_qs
+
 from invenio_base.wrappers import lazy_import
-from invenio.testsuite import make_test_suite, run_test_suite, InvenioTestCase
+from invenio_testing import InvenioTestCase
 
 HASHLIB_IMPORTED = lazy_import('invenio_utils.url:HASHLIB_IMPORTED')
 create_AWS_request_url = lazy_import('invenio_utils.url:create_AWS_request_url')
@@ -338,13 +339,3 @@ class TestRelativeURL(InvenioTestCase):
 
         url_adv_trailing = "http://web.net/asd/qwe/"
         self.assertEqual("/asd/qwe", get_relative_url(url_adv_trailing))
-
-TEST_SUITE = make_test_suite(TestWashUrlArgument,
-                             TestUrls,
-                             TestHtmlLinks,
-                             TestEmailObfuscationMode,
-                             TestSecureUrlRewrite,
-                             TestRelativeURL)
-
-if __name__ == "__main__":
-    run_test_suite(TEST_SUITE)

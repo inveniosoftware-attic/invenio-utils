@@ -22,15 +22,14 @@
 __revision__ = "$Id$"
 
 
-import datetime
 import calendar
-import time
+import datetime
 import os
-
-from time import mktime, strptime, tzset, struct_time
+import time
+from time import mktime, strptime, struct_time, tzset
 
 import invenio_utils.date as dateutils
-from invenio.testsuite import make_test_suite, run_test_suite, InvenioTestCase
+from invenio_testing import InvenioTestCase
 
 # FIXME check if the languages are configured
 lang_english_configured = True
@@ -454,17 +453,3 @@ class LocaltimeToUTCTest(InvenioTestCase):
         expected = "2012-12-12 16:15:00"
         result = dateutils.utc_to_localtime("2012-12-12T16:15:00Z")
         self.assertEqual(expected, result)
-
-
-TEST_SUITE = make_test_suite(ConvertFromDateCVSTest,
-                             ConvertIntoDateGUITest,
-                             ConvertIntoDateStructTest,
-                             ParseRuntimeLimitTest,
-                             STRFTimeTest,
-                             DateTest,
-                             DateTimeTest,
-                             LocaltimeToUTCTest,
-                             )
-
-if __name__ == "__main__":
-    run_test_suite(TEST_SUITE)

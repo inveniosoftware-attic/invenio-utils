@@ -21,7 +21,7 @@ import urllib2
 
 from werkzeug.contrib.cache import RedisCache
 
-from invenio.ext.cache import cache
+from invenio_ext.cache import cache
 from invenio_utils.xmlDict import ElementTree, XmlDictConfig
 
 

@@ -31,7 +31,7 @@ except ImportError:
 from unidecode import unidecode
 
 from invenio_base.wrappers import lazy_import
-from invenio.testsuite import make_test_suite, run_test_suite, InvenioTestCase
+from invenio_testing import InvenioTestCase
 
 decode_to_unicode = lazy_import('invenio_utils.text:decode_to_unicode')
 escape_latex = lazy_import('invenio_utils.text:escape_latex')
@@ -568,13 +568,3 @@ class LatexEscape(InvenioTestCase):
         escaped = escape_latex(unescaped)
         self.assertEqual(escaped,
                          "this is unescaped latex \\& \\% \\$ \\# \\_ \\{ \\} \\~{}  \\textbackslash{} \\^{} and some multi-byte chars: \xc5\xbc\xc3\xb3\xc5\x82w m\xc3\xa9m\xc3\xaam\xc3\xabm\xc3\xa8")
-
-
-TEST_SUITE = make_test_suite(WrapTextInABoxTest, GuessMinimumEncodingTest,
-                             WashForXMLTest, WashForUTF8Test, DecodeToUnicodeTest,
-                             Latex2UnicodeTest, TestStripping,
-                             TestALALC, TestDiffering)
-
-
-if __name__ == "__main__":
-    run_test_suite(TEST_SUITE)

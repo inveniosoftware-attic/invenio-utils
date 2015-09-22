@@ -19,7 +19,7 @@
 
 """Tests for downloadutils."""
 
-from invenio.testsuite import make_test_suite, run_test_suite, InvenioTestCase
+from invenio_testing import InvenioTestCase
 
 
 class TestDownloadUtils(InvenioTestCase):
@@ -42,9 +42,3 @@ class TestDownloadUtils(InvenioTestCase):
                                                 is_url_a_local_file)
         localpath = safe_mkstemp(".tmp")
         self.assertTrue(is_url_a_local_file(localpath))
-
-
-TEST_SUITE = make_test_suite(TestDownloadUtils)
-
-if __name__ == "__main__":
-    run_test_suite(TEST_SUITE)

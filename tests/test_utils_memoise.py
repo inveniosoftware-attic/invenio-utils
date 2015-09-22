@@ -19,7 +19,7 @@
 
 """Unit tests for the memoise facility."""
 
-from invenio.testsuite import make_test_suite, run_test_suite, InvenioTestCase
+from invenio_testing import InvenioTestCase
 
 
 def fib(n):
@@ -39,8 +39,3 @@ class MemoiseTest(InvenioTestCase):
         from invenio_utils.memoise import Memoise
         fib_memoised = Memoise(fib)
         self.assertEqual(fib(17), fib_memoised(17))
-
-TEST_SUITE = make_test_suite(MemoiseTest, )
-
-if __name__ == "__main__":
-    run_test_suite(TEST_SUITE)

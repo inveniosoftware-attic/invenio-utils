@@ -22,7 +22,7 @@
 __revision__ = "$Id$"
 
 from invenio_base.wrappers import lazy_import
-from invenio.testsuite import make_test_suite, run_test_suite, InvenioTestCase
+from invenio_testing import InvenioTestCase
 
 WASH_HTML_ID = lazy_import('invenio_utils.washers:wash_html_id')
 
@@ -42,10 +42,3 @@ class TestWashHTMLId(InvenioTestCase):
         self.assert_(WASH_HTML_ID('1aaa') == 'i1aaa')
         self.assert_(WASH_HTML_ID('1`~!@#$%^&*()-_+=[{]};:\'"\\|,<.>/?a') ==
                      'i1_a')
-
-
-TEST_SUITE = make_test_suite(TestWashHTMLId, TestWashUrlArgd)
-
-
-if __name__ == "__main__":
-    run_test_suite(TEST_SUITE)

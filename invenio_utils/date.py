@@ -52,7 +52,7 @@ from datetime import timedelta
 import six
 from flask_babel import format_datetime as babel_format_datetime
 
-from invenio.ext.babel import set_locale
+from invenio_ext.babel import set_locale
 from invenio_base.globals import cfg
 from invenio_base.i18n import _, gettext_set_language
 

@@ -17,33 +17,28 @@
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-"""
-Test unit for the miscutil/importutils module.
-"""
+"""Unit test for the autodiscover module."""
 
+from invenio_testing import InvenioTestCase
 from invenio_utils.autodiscovery import autodiscover_modules
-from invenio.testsuite import make_test_suite, run_test_suite, InvenioTestCase, nottest
 
 
 class AutodiscoveryTest(InvenioTestCase):
-    """
-    Autodiscovery TestSuite.
-    """
+
+    """Autodiscovery TestSuite."""
 
     def test_autodiscover_modules(self):
-        """autodiscover modules"""
-        modules = autodiscover_modules(['invenio_base'], related_name_re='config')
-        assert(len(modules) == 1)
-        assert(None not in modules)
-        modules = autodiscover_modules(['invenio.not_an_existing_folder'], related_name_re='foo_.+')
-        assert(len(modules) == 0)
-        assert(None not in modules)
-        modules = autodiscover_modules(['invenio_formatter.format_elements'], related_name_re='not_an_existing_package_name_.+')
-        assert(len(modules) == 0)
-        assert(None not in modules)
-
-
-TEST_SUITE = make_test_suite(AutodiscoveryTest, )
-
-if __name__ == "__main__":
-    run_test_suite(TEST_SUITE)
+        """Autodiscover modules."""
+        modules = autodiscover_modules(['invenio_base'],
+                                       related_name_re='config')
+        assert len(modules) == 1
+        assert None not in modules
+        modules = autodiscover_modules(['not_an_existing_folder'],
+                                       related_name_re='foo_.+')
+        assert len(modules) == 0
+        assert None not in modules
+        modules = autodiscover_modules(
+            ['invenio_formatter.format_elements'],
+            related_name_re='not_an_existing_package_name_.+')
+        assert len(modules) == 0
+        assert None not in modules
