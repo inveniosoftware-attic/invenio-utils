@@ -289,7 +289,7 @@ def create_enhanced_plugin_builder(compulsory_objects=None,
         the three maps provided as parameters and the corresponding value
         is the expected class or callable or simple data.
     """
-    from invenio_ext.legacy.handler import wash_urlargd
+    from invenio_utils.washers import wash_urlargd
 
     def plugin_builder(the_plugin):
         """
