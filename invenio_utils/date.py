@@ -52,7 +52,6 @@ from datetime import timedelta
 import six
 from flask_babel import format_datetime as babel_format_datetime
 
-from invenio_ext.babel import set_locale
 from invenio_base.globals import cfg
 from invenio_base.i18n import _, gettext_set_language
 
@@ -122,21 +121,20 @@ def convert_datetext_to_dategui(datetext, ln=None, secs=False):
     '2005-11-16 15:11:57' => '16 nov 2005, 15:11:57'
     Month is internationalized
     """
-    ln = default_ln(ln)
-    with set_locale(ln):
-        try:
-            datestruct = convert_datetext_to_datestruct(datetext)
-            if datestruct == datestruct_default:
-                raise ValueError
+    assert ln is None, 'setting language is not supported'
+    try:
+        datestruct = convert_datetext_to_datestruct(datetext)
+        if datestruct == datestruct_default:
+            raise ValueError
 
-            if secs:
-                output_format = "d MMM Y, H:mm:ss"
-            else:
-                output_format = "d MMM Y, H:mm"
-            dt = datetime.fromtimestamp(time.mktime(datestruct))
-            return babel_format_datetime(dt, output_format).encode('utf8')
-        except ValueError:
-            return _("N/A").encode('utf8')
+        if secs:
+            output_format = "d MMM Y, H:mm:ss"
+        else:
+            output_format = "d MMM Y, H:mm"
+        dt = datetime.fromtimestamp(time.mktime(datestruct))
+        return babel_format_datetime(dt, output_format)
+    except ValueError:
+        return _("N/A")
 
 
 def convert_datetext_to_datestruct(datetext):
@@ -153,17 +151,16 @@ def convert_datestruct_to_dategui(datestruct, ln=None):
     """Convert: (2005, 11, 16, 15, 11, 44, 2, 320, 0) => '16 nov 2005, 15:11'
     Month is internationalized
     """
-    ln = default_ln(ln)
-    with set_locale(ln):
-        try:
-            if datestruct[0] and datestruct[1] and datestruct[2]:
-                output_format = "d MMM Y, H:mm"
-                dt = datetime.fromtimestamp(time.mktime(datestruct))
-                return babel_format_datetime(dt, output_format).encode('utf8')
-            else:
-                raise ValueError
-        except:
-            return _("N/A").encode('utf8')
+    assert ln is None, 'setting language is not supported'
+    try:
+        if datestruct[0] and datestruct[1] and datestruct[2]:
+            output_format = "d MMM Y, H:mm"
+            dt = datetime.fromtimestamp(time.mktime(datestruct))
+            return babel_format_datetime(dt, output_format)
+        else:
+            raise ValueError
+    except:
+        return _("N/A")
 
 
 def convert_datestruct_to_datetext(datestruct):
