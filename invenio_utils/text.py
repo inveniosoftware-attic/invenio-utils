@@ -33,10 +33,6 @@ from unidecode import unidecode
 __revision__ = "$Id$"
 
 
-
-
-
-
 try:
     import chardet
     CHARDET_AVAILABLE = True
@@ -257,8 +253,8 @@ def wrap_text_in_a_box(body='', title='', style='double_star', **args):
     horiz_sep = astyle['horiz_sep']
     border = astyle['border']
     tab_str = astyle['tab_str'] * astyle['tab_num']
-    max_col = max(astyle['max_col']
-                  - len(border[3]) - len(border[4]) - len(tab_str), 1)
+    max_col = max(astyle['max_col'] -
+                  len(border[3]) - len(border[4]) - len(tab_str), 1)
     min_col = astyle['min_col']
     prefix = astyle['prefix']
     suffix = astyle['suffix']
@@ -293,26 +289,26 @@ def wrap_text_in_a_box(body='', title='', style='double_star', **args):
 
     max_col = max([len(row) for row in body_rows + title_rows] + [min_col])
 
-    mid_top_border_len = max_col \
-        + len(border[3]) + len(border[4]) - len(border[0]) - len(border[2])
-    mid_bottom_border_len = max_col \
-        + len(border[3]) + len(border[4]) - len(border[5]) - len(border[7])
-    top_border = border[0] \
-        + (border[1] * mid_top_border_len)[:mid_top_border_len] + border[2]
-    bottom_border = border[5] \
-        + (border[6] * mid_bottom_border_len)[:mid_bottom_border_len] \
-        + border[7]
+    mid_top_border_len = max_col + \
+        len(border[3]) + len(border[4]) - len(border[0]) - len(border[2])
+    mid_bottom_border_len = max_col + \
+        len(border[3]) + len(border[4]) - len(border[5]) - len(border[7])
+    top_border = border[0] + \
+        (border[1] * mid_top_border_len)[:mid_top_border_len] + border[2]
+    bottom_border = border[5] + \
+        (border[6] * mid_bottom_border_len)[:mid_bottom_border_len] + \
+        border[7]
     if isinstance(horiz_sep, tuple) and len(horiz_sep) == 3:
         horiz_line = horiz_sep[0] + \
             (horiz_sep[1] * (max_col + 2))[:(max_col + 2)] + horiz_sep[2]
     else:
         horiz_line = border[3] + (horiz_sep * max_col)[:max_col] + border[4]
 
-    title_rows = [tab_str + border[3] + row
-                  + ' ' * (max_col - len(row))
-                  + border[4] for row in title_rows]
-    body_rows = [tab_str + border[3] + row
-                 + ' ' * (max_col - len(row)) + border[4] for row in body_rows]
+    title_rows = [tab_str + border[3] + row +
+                  ' ' * (max_col - len(row)) +
+                  border[4] for row in title_rows]
+    body_rows = [tab_str + border[3] + row +
+                 ' ' * (max_col - len(row)) + border[4] for row in body_rows]
 
     ret = []
     if top_border:

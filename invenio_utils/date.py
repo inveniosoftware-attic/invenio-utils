@@ -20,8 +20,8 @@
 # along with Invenio; if not, write to the Free Software Foundation, Inc.,
 # 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 
-"""
-API for date conversion and date related GUI creation.
+"""API for date conversion and date related GUI creation.
+
 Lexicon
     datetext:
         textual format => 'YEAR-MONTH-DAY HOUR:MINUTE:SECOND'
@@ -39,8 +39,6 @@ Lexicon
         e.g. '16 nov 2005, 15:11'
         default value: _("N/A")
 """
-
-__revision__ = "$Id$"
 
 import re
 import time
@@ -82,7 +80,10 @@ except ImportError:
 datetext_default = '0000-00-00 00:00:00'
 datestruct_default = (0, 0, 0, 0, 0, 0, 0, 0, 0)
 datetext_format = "%Y-%m-%d %H:%M:%S"
-default_ln = lambda ln: cfg['CFG_SITE_LANG'] if ln is None else ln
+
+
+def default_ln(ln):
+    return cfg['CFG_SITE_LANG'] if ln is None else ln
 
 
 class date(real_date):

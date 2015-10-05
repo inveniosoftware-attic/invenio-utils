@@ -19,8 +19,9 @@
 
 from urllib2 import urlopen
 
-from invenio_formatter.engine import BibFormatObject
 from lxml import etree
+
+from invenio_formatter.engine import BibFormatObject
 
 CFG_VIAF_WIKIPEDIA_LINK_BFO_FIELD = "856"
 CFG_VIAF_LINK_NAME_LABEL_SUBFIELD = 'n'

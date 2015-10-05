@@ -35,8 +35,8 @@ import time
 import urllib
 import urllib2
 
-from invenio.config import CFG_BIBUPLOAD_FFT_ALLOWED_LOCAL_PATHS, \
-    CFG_TMPSHAREDDIR
+from flask import current_app
+
 from invenio_utils.url import make_invenio_opener
 
 URL_OPENER = make_invenio_opener('filedownloadutils')
@@ -272,8 +272,10 @@ def download_local_file(filename, download_to_file):
                   % (path, os.path.normpath(path))
             raise InvenioFileCopyError(msg)
 
-        allowed_path_list = CFG_BIBUPLOAD_FFT_ALLOWED_LOCAL_PATHS
-        allowed_path_list.append(CFG_TMPSHAREDDIR)
+        allowed_path_list = current_app.config.get(
+            'CFG_BIBUPLOAD_FFT_ALLOWED_LOCAL_PATHS', []
+        )
+        allowed_path_list.append(current_app.config['CFG_TMPSHAREDDIR'])
         for allowed_path in allowed_path_list:
             if path.startswith(allowed_path):
                 shutil.copy(path, download_to_file)
@@ -302,9 +304,11 @@ def is_url_a_local_file(url):
 def safe_mkstemp(suffix, prefix='filedownloadutils_'):
     """Create a temporary filename that don't have any '.' inside a part
     from the suffix."""
-    tmpfd, tmppath = tempfile.mkstemp(suffix=suffix,
-                                      prefix=prefix,
-                                      dir=CFG_TMPSHAREDDIR)
+    tmpfd, tmppath = tempfile.mkstemp(
+        suffix=suffix,
+        prefix=prefix,
+        dir=current_app.config['CFG_TMPSHAREDDIR']
+    )
     # Close the file and leave the responsability to the client code to
     # correctly open/close it.
     os.close(tmpfd)
@@ -314,9 +318,11 @@ def safe_mkstemp(suffix, prefix='filedownloadutils_'):
         return tmppath
     while '.' in os.path.basename(tmppath)[:-len(suffix)]:
         os.remove(tmppath)
-        tmpfd, tmppath = tempfile.mkstemp(suffix=suffix,
-                                          prefix=prefix,
-                                          dir=CFG_TMPSHAREDDIR)
+        tmpfd, tmppath = tempfile.mkstemp(
+            suffix=suffix,
+            prefix=prefix,
+            dir=current_app.config['CFG_TMPSHAREDDIR']
+        )
         os.close(tmpfd)
     return tmppath
 

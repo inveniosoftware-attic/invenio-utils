@@ -33,7 +33,8 @@ from invenio_base.globals import cfg
 from invenio_utils.text import encode_for_xml, indent_text
 
 
-default_ln = lambda ln: cfg['CFG_SITE_LANG'] if ln is None else ln
+def default_ln(ln):
+    return cfg['CFG_SITE_LANG'] if ln is None else ln
 
 try:
     from BeautifulSoup import BeautifulSoup
@@ -102,8 +103,9 @@ def nmtoken_from_string(text):
     'Extender' charsets are filtered out).
     """
     text = text.replace('-', '--')
-    return ''.join([(((not char.isalnum() and not char in [
-                   '.', '-', '_', ':']) and str(ord(char))) or char) for char in text])
+    return ''.join([(((not char.isalnum() and char not in [
+        '.', '-', '_', ':'
+    ]) and str(ord(char))) or char) for char in text])
 
 
 def escape_html(text, escape_quotes=False):

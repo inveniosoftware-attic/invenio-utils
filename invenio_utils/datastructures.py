@@ -282,8 +282,8 @@ class SmartDict(object):
         return True
 
     def __eq__(self, other):
-        return (isinstance(other, self.__class__)
-                and self._dict == other._dict)
+        return (isinstance(other, self.__class__) and
+                self._dict == other._dict)
 
     def __iter__(self):
         return iter(self._dict)

@@ -33,7 +33,7 @@ class AutodiscoveryTest(InvenioTestCase):
                                        related_name_re='config')
         assert len(modules) == 1
         assert None not in modules
-        modules = autodiscover_modules(['not_an_existing_folder'],
+        modules = autodiscover_modules(['invenio_utils.not_an_existing_folder'],
                                        related_name_re='foo_.+')
         assert len(modules) == 0
         assert None not in modules

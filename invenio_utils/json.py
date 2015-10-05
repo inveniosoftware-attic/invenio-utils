@@ -29,7 +29,6 @@ import six
 CFG_JSON_AVAILABLE = True
 
 
-
 def json_unicode_to_utf8(data):
     """Change all strings in a JSON structure to UTF-8."""
     if isinstance(data, unicode):

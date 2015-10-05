@@ -34,13 +34,15 @@ import tempfile
 import time
 from itertools import chain
 
+from flask import current_app
+
 import six
 from six import StringIO
 
-__all__ = ['run_shell_command',
+__all__ = ('run_shell_command',
            'run_process_with_timeout',
            'Timeout',
-           'split_cli_ids_arg']
+           'split_cli_ids_arg')
 
 """
 This module implements two functions:
@@ -214,8 +216,7 @@ def run_process_with_timeout(
     @raise Timeout: if the process does not terminate within the timeout
     """
     if timeout is None:
-        from invenio.config import CFG_MISCUTIL_DEFAULT_PROCESS_TIMEOUT
-        timeout = CFG_MISCUTIL_DEFAULT_PROCESS_TIMEOUT
+        timeout = current_app.config['CFG_MISCUTIL_DEFAULT_PROCESS_TIMEOUT']
     stdout = stderr = None
     if filename_in is not None:
         stdin = open(filename_in)
@@ -331,8 +332,7 @@ def retry_mkstemp(suffix='', prefix='tmp', directory=None, max_retries=3):
     Make mkstemp more robust against AFS glitches.
     """
     if directory is None:
-        from invenio.config import CFG_TMPSHAREDDIR
-        directory = CFG_TMPSHAREDDIR
+        directory = current_app.config['CFG_TMPSHAREDDIR']
     for retry_count in range(1, max_retries + 1):
         try:
             tmp_file_fd, tmp_file_name = tempfile.mkstemp(suffix=suffix,

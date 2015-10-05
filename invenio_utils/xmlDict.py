@@ -85,7 +85,7 @@ class XmlDictConfig(dict):
                     self.update({element.tag: dict(element.items())})
                     if not list(element) and isinstance(
                             element.text, six.string_types
-                            ) and element.text.strip() != '':
+                    ) and element.text.strip() != '':
                         self[element.tag].update(dict({"text": element.text}))
             # finally, if there are no child tags and no attributes, extract
             # the text

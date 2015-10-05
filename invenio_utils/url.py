@@ -56,7 +56,6 @@ except ImportError:
     BEAUTIFUL_SOUP_IMPORTED = False
 
 
-
 def wash_url_argument(var, new_type):
     """
     Wash argument into 'new_type', that can be 'list', 'str',
@@ -111,8 +110,6 @@ def wash_url_argument(var, new_type):
         else:
             out = {0: var}
     return out
-
-
 
 
 def is_local_url(target):
@@ -758,7 +755,7 @@ def create_AWS_request_url(base_url, argd, _amazon_secret_access_key,
                 _amazon_secret_access_key,
                 data,
                 my_digest_algo).digest()).strip()
-     # End util functions
+    # End util functions
 
     parsed_url = urlparse(base_url)
     signature = get_AWS_signature(argd, _amazon_secret_access_key,
@@ -908,12 +905,18 @@ if HASHLIB_IMPORTED:
 
     class _MySHA256(_MyHashlibAlgo):
         "A _MyHashlibAlgo subsclass for sha256"
-        new = lambda d = '': sha256()
+
+        @staticmethod
+        def new(d=''):
+            return sha256()
 
 
 class _MySHA1(_MyHashlibAlgo):
     "A _MyHashlibAlgo subsclass for sha1"
-    new = lambda d = '': sha1()
+
+    @staticmethod
+    def new(d=''):
+        return sha256()
 
 
 def auto_version_url(file_path):
