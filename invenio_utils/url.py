@@ -38,7 +38,7 @@ from cgi import escape, parse_qs, parse_qsl
 from urllib import FancyURLopener, quote, quote_plus, urlencode
 from urlparse import urljoin, urlparse
 
-from flask import request, url_for
+from flask import current_app, request, url_for
 from six.moves.urllib.parse import urlparse, urlunparse
 from werkzeug import cached_property
 from werkzeug.local import LocalProxy
@@ -742,16 +742,10 @@ def create_AWS_request_url(base_url, argd, _amazon_secret_access_key,
         @type _amazon_secret_access_key: string. Empty if hashlib module not installed
         """
         if not HASHLIB_IMPORTED:
-            try:
-                raise Exception(
-                    "Module hashlib not installed. Please install it.")
-            except:
-                from invenio_ext.logging import register_exception
-                register_exception(
-                    stream='warning',
-                    alert_admin=True,
-                    subject='Cannot create AWS signature')
-                return ""
+            current_app.logger.warning(
+                "Module hashlib not installed. Please install it."
+            )
+            return ""
         else:
             if sys.version_info < (2, 5):
                 # compatibility mode for Python < 2.5 and hashlib
@@ -851,12 +845,9 @@ def create_Indico_request_url(
                              my_digest_algo).hexdigest()
         items.append(('signature', signature))
     elif not HASHLIB_IMPORTED:
-        try:
-            raise Exception("Module hashlib not installed. Please install it.")
-        except:
-            from invenio_ext.logging import register_exception
-            register_exception(stream='warning', alert_admin=True,
-                               subject='Cannot create AWS signature')
+        current_app.logger.warning(
+            "Module hashlib not installed. Please install it."
+        )
     if not items:
         return url
 
