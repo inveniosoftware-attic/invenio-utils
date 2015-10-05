@@ -24,11 +24,30 @@
 Changes
 =======
 
-Version 0.1.0 (released 2015-09-22)
+Version 0.2.0 (released 2015-10-05)
+-----------------------------------
+
+Incompatible changes
+~~~~~~~~~~~~~~~~~~~~
+
+- Removes legacy logic module used in legacy search engine query
+  parser.
+- Removes w3c_validator utility.
+- Removes python client library for Sherpa Romeo service.
+- Removes language argument from date conveting functions.
+
+Bug fixes
+~~~~~~~~~
+
+- Removes dependency on legacy logging from Invenio-Ext.
+
+Version 0.1.1 (released 2015-09-22)
+-----------------------------------
 
 - Removes dependency on invenio package.
 - Adds missing dependency to backports.lzma.
 
 Version 0.1.0 (released 2015-09-16)
+-----------------------------------
 
 - Initial public release.

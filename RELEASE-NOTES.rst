@@ -1,8 +1,8 @@
 ======================
- Invenio-Utils v0.1.1
+ Invenio-Utils v0.2.0
 ======================
 
-Invenio-Utils v0.1.1 was released on September 22, 2015.
+Invenio-Utils v0.2.0 was released on October 5, 2015.
 
 About
 -----
@@ -11,25 +11,29 @@ Various utility functions and datatypes for Invenio.
 
 *This is an experimental developer preview release.*
 
-Improved features
------------------
+Incompatible changes
+--------------------
 
-- Removes dependency on invenio package.
+- Removes legacy logic module used in legacy search engine query
+  parser.
+- Removes w3c_validator utility.
+- Removes python client library for Sherpa Romeo service.
+- Removes language argument from date conveting functions.
 
 Bug fixes
 ---------
 
-- Adds missing dependency to backports.lzma.
+- Removes dependency on legacy logging from Invenio-Ext.
 
 Installation
 ------------
 
-   $ pip install invenio-utils==0.1.1
+   $ pip install invenio-utils==0.2.0
 
 Documentation
 -------------
 
-   http://invenio-utils.readthedocs.org/en/v0.1.1
+   http://invenio-utils.readthedocs.org/en/v0.2.0
 
 Happy hacking and thanks for flying Invenio-Utils.
 

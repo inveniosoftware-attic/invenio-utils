@@ -36,7 +36,7 @@ history = open('CHANGES.rst').read()
 requirements = [
     'Flask>=0.10.1',
     'backports.lzma>=0.0.3',
-    'invenio-base>=0.2.1',
+    'invenio-base>=0.3.0',
     'six>=1.7.2',
     'unidecode>=0.04.1',
 ]
@@ -46,7 +46,7 @@ test_requirements = [
     'coverage>=3.7.1',
     'httpretty>=0.8.10',
     'invenio-testing>=0.1.0',
-    'mock>=1.0.0',
+    'mock>=1.0.1',
     'pytest-cov>=2.1.0',
     'pytest-pep8>=1.0.6',
     'pytest>=2.8.0',
