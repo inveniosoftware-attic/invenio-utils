@@ -45,7 +45,6 @@ test_requirements = [
     'Flask-Testing>=0.4.1',
     'coverage>=3.7.1',
     'httpretty>=0.8.10',
-    'invenio-ext>=0.1.0',
     'invenio-testing>=0.1.0',
     'mock>=1.0.0',
     'pytest-cov>=2.1.0',
