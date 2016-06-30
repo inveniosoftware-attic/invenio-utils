@@ -54,7 +54,7 @@ class GitHarvestTest(InvenioTestCase):
         # Setup git user config.
         call([self.which_git, 'config', 'user.name', 'Invenio Software'])
         call([self.which_git, 'config', 'user.email',
-              'info@invenio-software.org'])
+              'info@inveniosoftware.org'])
 
         call(['touch', self.path + 'test.txt'])
         call([self.which_git, 'add', self.path + 'test.txt'])
