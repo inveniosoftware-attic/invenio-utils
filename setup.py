@@ -34,7 +34,7 @@ readme = open('README.rst').read()
 history = open('CHANGES.rst').read()
 
 requirements = [
-    'Flask>=0.10.1',
+    'Flask>=0.11.1',
     'backports.lzma>=0.0.3',
     'invenio-base>=0.3.0',
     'six>=1.7.2',
